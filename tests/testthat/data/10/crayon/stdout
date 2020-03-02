@@ -1,0 +1,7 @@
+file,fun,args
+R/machinery.r,stopifnot,length(args) == 1
+R/machinery.r,stopifnot,"is.character(style) && length(style) == 1 || is_rgb_matrix(style) && ncol(style) == 1, is.logical(bg) && length(bg) == 1, is.numeric(colors) && length(colors) == 1"
+R/string.r,stopifnot,"is.character(lhs), is.character(rhs)"
+R/string.r,stopifnot,length(lhs) == length(rhs) || length(lhs) == 1 || length(rhs) == 1
+R/utils.r,stopifnot,is_string(x)
+R/utils.r,stopifnot,by != 0

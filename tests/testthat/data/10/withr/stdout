@@ -1,0 +1,10 @@
+file,fun,args
+R/connection.R,stopifnot,all(is.named(con))
+R/db.R,stopifnot,all(is.named(con))
+R/db.R,stopifnot,"all(vlapply(con, methods::is, ""DBIConnection""))"
+R/db.R,stopifnot,"methods::is(con, ""DBIConnection"")"
+R/env.R,stopifnot,is.named(envs)
+R/env.R,stopifnot,"is.character(action), length(action) == 1"
+R/locale.R,stopifnot,"is.named(cats), is.character(cats)"
+R/makevars.R,stopifnot,is.named(variables)
+tests/testthat/test-defer.R,stopifnot,file.exists(path)

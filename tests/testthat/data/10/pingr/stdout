@@ -1,0 +1,2 @@
+file,fun,args
+R/dns.R,stopifnot,"is_string(domain), is_string_or_null(server), is_type(type), is_class(class)"

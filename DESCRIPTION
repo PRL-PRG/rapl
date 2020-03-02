@@ -1,0 +1,26 @@
+Package: gparutils
+Title: Helper Functions and Scripts for GNU Parallel
+Version: 0.0.1
+Authors@R:
+    person(given = "Filip",
+           family = "Krikava",
+           role = c("aut", "cre"),
+           email = "krikava@gmail.com",
+           comment = c(ORCID = "0000-0002-0478-6202"))
+Description: Contains a set of helper functions and scripts that work with the result of GNU parallel jobs.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests:
+    testthat
+Imports:
+    dplyr,
+    fs,
+    lubridate,
+    magrittr,
+    purrr,
+    readr,
+    stringr,
+    tibble,
+    withr
+RoxygenNote: 7.0.2

@@ -1,0 +1,4 @@
+file,fun,args
+tests/doRUnit.R,stopifnot,"require(RUnit, quietly = TRUE)"
+tests/doRUnit.R,stopifnot,"require(Rcpp, quietly = TRUE)"
+tests/doRUnit.R,stopifnot,"require(RcppParallel, quietly = TRUE)"

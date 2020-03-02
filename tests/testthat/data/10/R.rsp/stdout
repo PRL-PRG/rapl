@@ -1,0 +1,10 @@
+file,fun,args
+tests/compileRsp.R,stopifnot,"identical(readLines(pathnameR2), readLines(pathnameR))"
+tests/compileRsp.R,stopifnot,"identical(readLines(pathnameR3), readLines(pathnameR))"
+tests/deparse.R,stopifnot,"inherits(d0, ""RspDocument"")"
+tests/deparse.R,stopifnot,"inherits(d1, ""RspDocument"")"
+tests/deparse.R,stopifnot,"identical(d1, d0)"
+tests/deparse.R,stopifnot,s1 == s0
+"tests/include,recursive.R",stopifnot,"inherits(res, ""try-error"")"
+tests/rcode.R,stopifnot,"basename(pathnameR) == ""slowcounting.txt.R"""
+tests/rsource.R,stopifnot,"exists(""i"", mode = ""numeric"")"

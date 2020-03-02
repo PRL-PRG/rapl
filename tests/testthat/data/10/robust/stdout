@@ -1,0 +1,2 @@
+file,fun,args
+tests/weight-tst.R,stopifnot,"all.equal(p1, p., tol = if (ipsi == 3) 0.05 else 0.001), all.equal(r1, ps, tol = 1e-04)"
