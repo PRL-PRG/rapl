@@ -1,5 +1,5 @@
 Package: gparutils
-Title: R analysis of parallel package logs
+Title: R analysis of GNU parallel runs
 Version: 0.0.1
 Authors@R:
     person(given = "Filip",
