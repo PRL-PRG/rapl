@@ -1,5 +1,5 @@
 Package: gparutils
-Title: Helper Functions and Scripts for GNU Parallel
+Title: R analysis of parallel package logs
 Version: 0.0.1
 Authors@R:
     person(given = "Filip",

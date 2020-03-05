@@ -1,0 +1,12 @@
+export R_PROJECT_BASE_DIR="$HOME/Research/Projects/R"
+export R_VERSION=${R_VERSION:-3.6}
+export R_VERSION_FULL=${R_VERSION_FULL:-3.6.2}
+
+export R_BIN_DIR=$R_PROJECT_BASE_DIR/R/R-$R_VERSION_FULL/bin
+export R_BIN=$R_BIN_DIR/R
+
+#export CRAN_MIRROR_URL='https://cloud.r-project.org/'
+export CRAN_MIRROR_URL='https://mirrors.nic.cz/R'
+export CRAN_MIRROR_DIR=$R_PROJECT_BASE_DIR/CRAN/src/contrib
+export PACKAGES_SRC_DIR=$R_PROJECT_BASE_DIR/CRAN/extracted
+export LIB_DIR=$R_PROJECT_BASE_DIR/library/$R_VERSION
