@@ -7,7 +7,7 @@ library(readr)
 library(tibble)
 library(withr)
 
-library(gparutils)
+library(rapr)
 
 RUNTIME_CHECKS_FILE <- "runtime-checks.csv"
 FUNCTIONS <- c(

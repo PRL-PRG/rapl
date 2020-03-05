@@ -5,7 +5,7 @@ library(fs)
 library(purrr)
 library(readr)
 
-library(gparutils)
+library(rapr)
 
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) != 3) {

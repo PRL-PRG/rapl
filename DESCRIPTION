@@ -1,4 +1,4 @@
-Package: gparutils
+Package: rapr
 Title: R analysis of GNU parallel runs
 Version: 0.0.1
 Authors@R:

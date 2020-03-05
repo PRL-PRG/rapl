@@ -1,4 +1,4 @@
 library(testthat)
-library(gparutils)
+library(rapr)
 
-test_check("gparutils")
+test_check("rapr")
