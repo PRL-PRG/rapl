@@ -5,8 +5,14 @@ export R_VERSION_FULL=${R_VERSION_FULL:-3.6.2}
 export R_BIN_DIR=$R_PROJECT_BASE_DIR/R/R-$R_VERSION_FULL/bin
 export R_BIN=$R_BIN_DIR/R
 
-#export CRAN_MIRROR_URL='https://cloud.r-project.org/'
-export CRAN_MIRROR_URL='https://mirrors.nic.cz/R'
-export CRAN_MIRROR_DIR=$R_PROJECT_BASE_DIR/CRAN/src/contrib
+export CRAN_MIRROR_HOST='mirrors.nic.cz'
+export CRAN_MIRROR_URL="https://$CRAN_MIRROR_HOST/R"
+
+#export CRAN_MIRROR_HOST='cloud.r-project.org'
+#export CRAN_MIRROR_URL="https://$CRAN_MIRROR_HOST/"
+
+export CRAN_MIRROR_DIR=$R_PROJECT_BASE_DIR/CRAN
+export CRAN_LOCAL_MIRROR="file:///$CRAN_MIRROR_DIR"
+
 export PACKAGES_SRC_DIR=$R_PROJECT_BASE_DIR/CRAN/extracted
 export LIB_DIR=$R_PROJECT_BASE_DIR/library/$R_VERSION
