@@ -32,9 +32,10 @@ do_coverage <- function(type) {
 
     coverage_expression <- percent_coverage(df, by="expression")
     coverage_line <- percent_coverage(df, by="line")
-    tibble(type, coverage_expression, coverage_line)
+
+    tibble(type, coverage_expression, coverage_line, error=NA)
   }, error=function(e) {
-    tibble(type, error=e$message)
+    tibble(type, coverage_expression=NA, coverage_line=NA, error=e$message)
   })
 }
 
