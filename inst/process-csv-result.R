@@ -25,15 +25,31 @@ good_results <- filter(results, exitval==0)
 paths <- good_results$path
 jobs <- basename(paths)
 files <- path(paths, file)
+merged_csv_file <- path(run_dir, file)
+parallel_results_file <- path(run_dir, "parallel-results.csv")
+
+if (file_exists(merged_csv_file)) {
+  file_delete(merged_csv_file)
+}
 
 df <- read_files(
   jobs,
   files,
   readf=function(file) suppressMessages(read_csv(file, col_types=col_types)),
-  mapf=function(job, df) mutate(df, package=job, load_error=NA) %>% select(package, everything()),
-  mapf_error=function(job, file, message) tibble(package=job, load_error=message),
+  mapf=function(job, df) {
+    df %>%
+      mutate(package=job) %>%
+      select(package, everything()) %>%
+      write_csv(merged_csv_file, append=file_exists(merged_csv_file))
+    NULL
+  },
+  mapf_error=function(job, file, message) {
+    if (file_exists(file)) tibble(job, load_error=message) else NULL
+  },
   reducef=bind_rows
 )
 
-write_csv(results, path(run_dir, "results.csv"))
-write_csv(df, path(run_dir, file))
+if (nrow(df) > 0) {
+  results <- left_join(results, df, by="job")
+}
+write_csv(results, parallel_results_file)
