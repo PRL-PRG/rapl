@@ -30,8 +30,9 @@ do_coverage <- function(type) {
     df <- add_column(df, type=type, .before="filename")
     write_csv(df, COVERAGE_DETAILS_FILENAME, append=TRUE)
 
-    overall_coverage <- percent_coverage(df, by=COVERAGE_BY)
-    tibble(type, coverage=overall_coverage)
+    coverage_expression <- percent_coverage(df, by="expression")
+    coverage_line <- percent_coverage(df, by="line")
+    tibble(type, coverage_expression, coverage_line)
   }, error=function(e) {
     tibble(type, error=e$message)
   })

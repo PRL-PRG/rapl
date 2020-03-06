@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -ex
+
 : "${R_BIN:?Not set}"
 : "${CRAN_MIRROR_DIR:?Not set}"
 : "${PACKAGES_SRC_DIR:?Not set}"
