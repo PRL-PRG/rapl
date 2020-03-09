@@ -15,6 +15,7 @@ fi
 
 TASK_NAME=$(basename "${1%.*}")
 : "${TASK_NAME:?Not set}"
+: "${LIB_DIR:?Not set}"
 
 [ -d "$RUN_DIR" ] || mkdir -p "$RUN_DIR"
 
@@ -32,6 +33,8 @@ elif [ -f "$PACKAGES" ]; then
 else
     pkg_listing_cmd="echo $PACKAGES | tr , '\n' | sed -e 's|^|$PACKAGES_SRC_DIR/|'"
 fi
+
+export R_LIBS="$LIB_DIR"
 
 eval "$pkg_listing_cmd" | \
     parallel \
