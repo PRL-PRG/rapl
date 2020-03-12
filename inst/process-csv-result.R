@@ -53,3 +53,6 @@ if (nrow(df) > 0) {
   results <- left_join(results, df, by="job")
 }
 write_csv(results, parallel_results_file)
+
+cat("Exitval status:\n")
+print(count(results, exitval))
