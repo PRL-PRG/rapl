@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-options(error = function() traceback(3))
+options(error = function() { traceback(3); q(status=1) })
 
 library(covr)
 library(fs)
@@ -21,9 +21,12 @@ if (length(args) != 1) {
 
 path <- args[1]
 
+message(tempfile())
+message(paste0(.libPaths(), col="\n"))
+
 do_coverage <- function(type) {
   df <- tryCatch({
-    pc <- package_coverage(path, type=type)
+    pc <- package_coverage(path, type=type, quiet=FALSE)
     saveRDS(pc, str_glue("coverage-raw-{type}.RDS"))
 
     df <- tally_coverage(pc, by=COVERAGE_BY)
@@ -44,5 +47,6 @@ if (file_exists(COVERAGE_DETAILS_FILENAME)) {
 }
 
 coverage <- map_dfr(TYPES, do_coverage)
-
 write_csv(coverage, COVERAGE_FILENAME)
+
+stopifnot(all(is.na(coverage$error)))
