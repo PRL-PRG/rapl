@@ -58,11 +58,19 @@ echo "$NUM_JOBS" > "$JOBS_FILE"
 
 ## assemble the environment
 # set the correct lib path
-export R_LIBS="$LIB_DIR"
+export R_LIBS="$R_LIBS:$LIB_DIR"
 # try to work out around too much parallelism
 export OMP_NUM_THREADS=1
 # prioritize the R set in the environment
 export PATH="$R_BIN_DIR:$PATH"
+
+echo "PACKAGES: $PACKAGES"
+echo "PATH: $PATH"
+echo "R_LIBS: $R_LIBS"
+echo "parallel.log: $parallel_log"
+echo
+echo "command: $cmd"
+echo "args: $@"
 
 eval "$pkg_listing_cmd" | \
     parallel \

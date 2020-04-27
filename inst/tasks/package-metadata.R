@@ -5,6 +5,7 @@ options(error = function() traceback(3))
 suppressPackageStartupMessages(library(devtools))
 library(fs)
 library(purrr)
+library(rapr)
 library(readr)
 library(stringr)
 library(tibble)
@@ -35,18 +36,6 @@ tryCatch({
 }, error=function(e) {
   message("Unable to get package size: ", e$message)
 })
-
-cloc <- function(dir) {
-  sloc <- system2("cloc", c("--follow-links", "-q", "--csv", dir), stdout = TRUE)[-1]
-  if (length(sloc) > 1) {
-    sloc[1] <- "files,language,blank,comment,code"
-    df <- read_csv(sloc, col_types="cciii")
-    df <- add_column(df, dir=basename(dir), .before="files")
-    df
-  } else {
-    NULL
-  }
-}
 
 paths <- fs::path(path, c("R", "src", "inst", "tests", "vignettes"))
 paths <- paths[is_dir(paths)]

@@ -1,58 +1,67 @@
 #!/usr/bin/env Rscript
 
 suppressPackageStartupMessages(library(dplyr))
+library(knitr)
 library(fs)
 library(purrr)
 library(readr)
+library(stringr)
 
 library(rapr)
 
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 2) {
-  message("Usage: merge-csvs.R <directory-with-parallel.log> <filename.csv> [<column-types>]")
+  message("Usage: merge-csvs.R <directory-with-parallel.log> <CSV files>")
   q(status=1)
 }
 
 stopifnot(fs::is_dir(args[1]))
 
 run_dir <- args[1]
-file <- args[2]
-col_types <- if (length(args) == 3) args[3] else NULL
+csv_files <- args[-1]
 
-results <- read_parallel_results(run_dir)
-good_results <- filter(results, exitval==0)
-
-paths <- good_results$path
-jobs <- basename(paths)
-files <- path(paths, file)
-merged_csv_file <- path(run_dir, file)
+cat("Reading GNU parallel run data...\n\n")
 parallel_results_file <- path(run_dir, "parallel-results.csv")
+results <- read_parallel_results(run_dir)
 
-if (file_exists(merged_csv_file)) {
-  file_delete(merged_csv_file)
-}
-
-df <- read_files(
-  jobs,
-  files,
-  readf=function(file) suppressMessages(read_csv(file, col_types=col_types)),
-  mapf=function(job, df) {
-    df %>%
-      mutate(package=job) %>%
-      select(package, everything()) %>%
-      write_csv(merged_csv_file, append=file_exists(merged_csv_file))
-    NULL
-  },
-  mapf_error=function(job, file, message) {
-    if (file_exists(file)) tibble(job, load_error=message) else NULL
-  },
-  reducef=bind_rows
-)
-
-if (nrow(df) > 0) {
-  results <- left_join(results, df, by="job")
-}
+cat(str_glue("Writing results into {parallel_results_file}\n"))
 write_csv(results, parallel_results_file)
 
-cat("Exitval status:\n")
-print(count(results, exitval))
+cat("\nTask success status:\n")
+cat(str_c(knitr::kable(count(results, exitval)), collapse="\n"))
+cat("\n\n")
+
+good_results <- filter(results, exitval==0)
+paths <- good_results$path
+jobs <- basename(paths)
+
+cat("Processing results:\n\n")
+for (file in csv_files) {
+  files <- path(paths, file)
+  merged_csv_file <- path(run_dir, file)
+
+  if (file_exists(merged_csv_file)) {
+    file_delete(merged_csv_file)
+  }
+
+  df <- read_files(
+    jobs,
+    files,
+    readf=function(file) suppressMessages(read_csv(file)),
+    mapf=function(job, df) {
+      # this is a bit misuse, the work here is done by a side-effect
+      # appending to the CSV file - otherwise it will be too slow
+      # and use all memory since since some CSV files are rather large
+      # this demonstrates a bad API!
+      df %>%
+        mutate(package=job) %>%
+        select(package, everything()) %>%
+        write_csv(merged_csv_file, append=file_exists(merged_csv_file))
+      NULL
+    },
+    mapf_error=function(job, file, message) {
+      if (file_exists(file)) warning(job, ": ", file, ": ", message)
+      NULL
+    }
+  )
+}
