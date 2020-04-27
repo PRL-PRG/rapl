@@ -8,7 +8,13 @@
 read_parallel_results <- function(path, stdout=TRUE, stderr=TRUE) {
   log <- read_parallel_log(path)
   seq <- read_parallel_seq(path)
-  df <- left_join(log, seq, by="seq")
+  # It is important that the seq with log and not the other way around.
+  # The reason is that log could have some duplication due to
+  # multiple run of the same job. Each job gets a unique seq ID stored
+  # in the log, but since we use the job name as a directory name, running
+  # the same job will have two different seqs, but only one will be kept
+  # in the output directory
+  df <- left_join(seq, log, by="seq")
 
   read_extras <- function(name) {
     process_row <- function(x) {
@@ -16,7 +22,9 @@ read_parallel_results <- function(path, stdout=TRUE, stderr=TRUE) {
         x <- as.character(NA)
       }
 
-      row <- if (inherits(x, "condition")) {
+      row <- if (inherits(x, "error")) {
+        list(as.character(NA), x[[3]])
+      } else if (inherits(x, "condition")) {
         list(as.character(NA), x$message)
       } else {
         list(str_c(x, collapse="\n"), as.character(NA))
@@ -40,6 +48,7 @@ read_parallel_results <- function(path, stdout=TRUE, stderr=TRUE) {
 #' @importFrom purrr map2 discard keep
 #' @importFrom readr read_lines
 #' @importFrom stringr str_glue
+#' @importFrom progress progress_bar
 #' @export
 #'
 read_files <- function(jobs, files,
@@ -51,6 +60,13 @@ read_files <- function(jobs, files,
 
   stopifnot(length(jobs) == length(files))
 
+  pb <- progress::progress_bar$new(
+    format="reading :file [:bar] :current/:total :percent, :eta",
+    total=length(jobs),
+    clear=FALSE,
+    width=80
+  )
+
   read_one <- function(job, file) {
     tryCatch({
       mapf(job, readf(file))
@@ -60,6 +76,11 @@ read_files <- function(jobs, files,
       if (!quiet) message(msg)
 
       mapf_error(job, file, e$message)
+    }, finally={
+      if (is.na(file)) file <- "NA"
+      else if (is.null(file)) file <- "NULL"
+      else file <- basename(file)
+      pb$tick(tokens=list(file=file))
     })
   }
 
