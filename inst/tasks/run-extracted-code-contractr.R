@@ -1,0 +1,19 @@
+#!/usr/bin/env Rscript
+
+# NOTE: this file is used for coverage, should not have
+# any dependencies except for base R with the exception
+# of rapr
+
+options(error = function() { traceback(3); q(status=1) })
+
+library(contractr)
+library(fst)
+
+script <- system.file("tasks/run-extracted-code.R", package="rapr")
+
+sys.source(script, envir=new.env())
+
+ignore_contracts({
+    contracts <- get_contracts()
+    fst::write_fst(contractss, "contracts.fst")
+})
