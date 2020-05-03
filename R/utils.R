@@ -12,3 +12,21 @@ cloc <- function(path, cloc_bin="cloc") {
     NULL
   }
 }
+
+#' @export
+current_script <- function() {
+  cmdArgs <- commandArgs(trailingOnly = FALSE)
+  match <- grep("--file=", cmdArgs)
+  if (length(match) > 0) {
+    # in Rscript
+    normalizePath(sub(needle, "", cmdArgs[match]))
+  } else {
+    # in source
+    file <- sys.frames()[[1]]$ofile
+    if (!is.null(file)) {
+      normalizePath(file)
+    } else {
+      NULL
+    }
+  }
+}
