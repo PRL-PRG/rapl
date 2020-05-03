@@ -3,7 +3,7 @@
 #' @importFrom stringr str_replace str_c
 #' @export
 #'
-search_function_calls <- function(expr, functions) {
+search_function_calls <- function(expr, functions, srcref=NULL) {
   functions_names <- str_replace(functions, "^.*:::", "")
 
   is_interesting_call <- function(call) {
@@ -25,18 +25,24 @@ search_function_calls <- function(expr, functions) {
     }
   }
 
-  loop <- function(node) {
+  loop <- function(node, srcref=NULL) {
     if (is.atomic(node) || is.name(node)) {
       NULL
     } else {
-      calls <- unlist(lapply(node, loop))
+      nested_srcref <- attr(node, "srcref")
+      if (length(nested_srcref) != length(node)) {
+        nested_srcref <- map(seq(length(node)), ~NULL)
+      }
+
+      calls <- unlist(map2(node, nested_srcref, loop))
 
       if (is.call(node) && is_interesting_call(node)) {
+        attr(node, "srcref") <- srcref
         calls <- append(calls, node)
       }
       calls
     }
   }
 
-  loop(expr)
+  loop(expr, srcref)
 }
