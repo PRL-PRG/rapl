@@ -17,43 +17,58 @@ FUNCTIONS <- c(
   "assertthat:::validate_that"
 )
 
-make_row <- function(call) {
+make_row <- function(call, fun_name) {
   deparse_arg <- function(arg) {
     paste(deparse(arg, width.cutoff=180L), collapse="")
   }
 
   lst <- as.list(call)
-  fun <- lst[[1L]]
-  fun <- if (is.call(fun)) {
-    if (length(fun) == 3) {
-      as.character(fun)[3]
+  assert <- lst[[1L]]
+  assert <- if (is.call(assert)) {
+    if (length(assert) == 3) {
+      as.character(assert)[3]
     } else {
-      format(fun)
+      format(assert)
     }
   } else {
-    as.character(fun)
+    as.character(assert)
   }
   args <- paste(map_chr(lst[-1L], deparse_arg), collapse=", ")
 
-  tibble(fun, args)
+  line1 <- NA
+  line2 <- NA
+  col1 <- NA
+  col2 <- NA
+  file <- NA
+
+  srcref <- attr(call, "srcref")
+  if (!is.null(srcref)) {
+    line1 <- srcref[1]
+    col1 <- srcref[2]
+    line2 <- srcref[3]
+    col2 <- srcref[4]
+    file <- attr(srcref, "srcfile")$filename
+    if (is.null(file)) file <- NA
+  }
+
+  row <- tibble(fun_name, file, line1, col1, line2, col2, assert, args)
+  print(row)
 }
 
-process_one <- function(file) {
-  ast <- withr::with_options(c("keep.parse.data.pkgs" = TRUE), {
-    tryCatch({
-      # getting locations from the srcrefs is quite tricky
-      # so unless we find out that we need that, I just drop it
-      parse(file, keep.source=FALSE)
-    }, error=function(e) stop("Unable to parse ", file, ": ", e, call=FALSE))
-  })
+make_rows <- function(calls, fun_name) {
+  map_dfr(calls, make_row, fun_name=fun_name)
+}
 
-  calls <-
-    map(ast, ~search_function_calls(., FUNCTIONS)) %>%
-    unlist() %>%
-    discard(is.null)
+process_fun <- function(fun, fun_name) {
+  ast <- body(fun)
+  srcref <- attr(fun, "srcref")
+  calls <- search_function_calls(ast, functions=FUNCTIONS, srcref=srcref)
 
-  df <- map_dfr(calls, make_row)
-  add_column(df, file=file, .before=1L)
+  if (length(calls) == 1) {
+    calls <- list(calls)
+  }
+
+  calls
 }
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -62,9 +77,15 @@ if (length(args) != 1) {
 }
 
 path <- args[1]
+package <- basename(path)
 
-r_files <- dir_ls(path, regexp=".*\\.[Rr]$", recurse=TRUE)
-df <- map_dfr(r_files, process_one)
+ns <- as.list(getNamespace(package))
+
+funs <- keep(ns, is.function)
+
+checks <- imap(funs, process_fun) %>% discard(~is.null(.) || length(.) == 0)
+
+df <- imap_dfr(checks, make_rows)
 
 if (nrow(df) > 0) {
   write_csv(df, RUNTIME_CHECKS_FILE)
