@@ -1,0 +1,21 @@
+export R_PROJECT_BASE_DIR="/var/lib/R"
+export R_VERSION=${R_VERSION:-3.5}
+export R_VERSION_FULL=${R_VERSION_FULL:-3.5.0}
+
+export R_BIN_DIR=$R_PROJECT_BASE_DIR/R/R-$R_VERSION_FULL/bin
+export R_BIN=$R_BIN_DIR/R
+
+export CRAN_MIRROR_HOST='mirrors.nic.cz'
+export CRAN_MIRROR_URL="https://$CRAN_MIRROR_HOST/R"
+
+#export CRAN_MIRROR_HOST='cloud.r-project.org'
+#export CRAN_MIRROR_URL="https://$CRAN_MIRROR_HOST/"
+
+export CRAN_MIRROR_DIR=$R_PROJECT_BASE_DIR/CRAN
+export CRAN_LOCAL_MIRROR="file:///$CRAN_MIRROR_DIR"
+
+export PACKAGES_SRC_DIR=$R_PROJECT_BASE_DIR/CRAN/extracted
+export LIB_DIR=$R_PROJECT_BASE_DIR/library/$R_VERSION
+
+alias env-rscript="R_LIBS=$LIB_DIR $R_BIN_DIR/Rscript"
+alias env-r="R_LIBS=$LIB_DIR $R_BIN"
