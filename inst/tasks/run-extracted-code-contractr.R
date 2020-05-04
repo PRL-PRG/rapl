@@ -13,7 +13,5 @@ script <- system.file("tasks/run-extracted-code.R", package="rapr")
 
 sys.source(script, envir=new.env())
 
-ignore_contracts({
-    contracts <- get_contracts()
-    fst::write_fst(contractss, "contracts.fst")
-})
+contracts <- get_contracts()
+fst::write_fst(contracts, "contracts.fst")
