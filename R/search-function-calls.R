@@ -1,6 +1,7 @@
 #' @param expr is the expression in which run the search
 #' @param functions is a string vector in the form of package:::function_name
 #' @importFrom stringr str_replace str_c
+#' @importFrom purrr map map2
 #' @export
 #'
 search_function_calls <- function(expr, functions, srcref=NULL) {

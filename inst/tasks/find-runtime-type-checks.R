@@ -51,8 +51,7 @@ make_row <- function(call, fun_name) {
     if (is.null(file)) file <- NA
   }
 
-  row <- tibble(fun_name, file, line1, col1, line2, col2, assert, args)
-  print(row)
+  tibble(fun_name, file, line1, col1, line2, col2, assert, args)
 }
 
 make_rows <- function(calls, fun_name) {
@@ -62,13 +61,8 @@ make_rows <- function(calls, fun_name) {
 process_fun <- function(fun, fun_name) {
   ast <- body(fun)
   srcref <- attr(fun, "srcref")
-  calls <- search_function_calls(ast, functions=FUNCTIONS, srcref=srcref)
 
-  if (length(calls) == 1) {
-    calls <- list(calls)
-  }
-
-  calls
+  search_function_calls(ast, functions=FUNCTIONS, srcref=srcref)
 }
 
 args <- commandArgs(trailingOnly=TRUE)
