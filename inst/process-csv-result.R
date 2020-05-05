@@ -10,7 +10,7 @@ library(stringr)
 library(rapr)
 
 args <- commandArgs(trailingOnly=TRUE)
-if (length(args) < 2) {
+if (length(args) < 1) {
   message("Usage: merge-csvs.R <directory-with-parallel.log> <CSV files>")
   q(status=1)
 }
