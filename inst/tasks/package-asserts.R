@@ -9,7 +9,7 @@ library(withr)
 
 library(rapr)
 
-RUNTIME_CHECKS_FILE <- "runtime-checks.csv"
+OUTPUT_FILE <- "package-asserts.csv"
 FUNCTIONS <- c(
   "base:::stopifnot",
   "assertthat:::assert_that",
@@ -82,5 +82,5 @@ checks <- imap(funs, process_fun) %>% discard(~is.null(.) || length(.) == 0)
 df <- imap_dfr(checks, make_rows)
 
 if (nrow(df) > 0) {
-  write_csv(df, RUNTIME_CHECKS_FILE)
+  write_csv(df, OUTPUT_FILE)
 }
