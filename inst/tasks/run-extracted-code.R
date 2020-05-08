@@ -32,6 +32,11 @@ runnable_code_file <- file.path(runnable_code_path, "runnable-code.csv")
 cat("Lib paths:\n")
 cat(paste0(.libPaths(), col="\n"))
 
-df <- rapr::run_all(package, runnable_code_file)
+df <- rapr::run_all(
+  package,
+  runnable_code_file,
+  run_before=getOption("rapr.run_before"),
+  run_after=getOption("rapr.run_after")
+)
 
 write.csv(df, OUTPUT_FILENAME, row.names=FALSE)

@@ -78,7 +78,10 @@ run_one <- function(package, file) {
 #' on purpose it only uses base functions
 #'
 #' @export
-run_all <- function(package, runnable_code_file, runnable_code_path=dirname(runnable_code_file)) {
+run_all <- function(package, runnable_code_file,
+                    runnable_code_path=dirname(runnable_code_file),
+                    run_before=NULL, run_after=NULL) {
+
   if (!file.exists(runnable_code_file)) {
     stop(runnable_code_file, ": no such runnable code file (wd=", getwd(), ")")
   }
@@ -86,14 +89,26 @@ run_all <- function(package, runnable_code_file, runnable_code_path=dirname(runn
   if (!dir.exists(runnable_code_path)) {
     stop(runnable_code_path, ": no such runnable code path (wd=", getwd(), ")")
   }
- 
+
   files <- read.csv(runnable_code_file)
 
   rows <- apply(files, 1, function(x) {
     file <- file.path(runnable_code_path, x["path"])
-    i <- data.frame(file=x["path"], type=x["type"], row.names=NULL, stringsAsFactors=FALSE)
+    type <- x["type"]
+    i <- data.frame(file=x["path"], type=type, row.names=NULL, stringsAsFactors=FALSE)
+
+    if (!is.null(run_before)) {
+      run_before(package, file, type)
+    }
+
     r <- run_one(package, file)
-    cbind(i, r)
+    v <- cbind(i, r)
+
+    if (!is.null(run_after)) {
+      run_after(package, file, type)
+    }
+
+    v
   })
 
   df <- if (length(rows) > 0) {
@@ -101,7 +116,7 @@ run_all <- function(package, runnable_code_file, runnable_code_path=dirname(runn
   } else {
     data.frame(
       file=character(0),
-      type=charactre(0),
+      type=character(0),
       time=double(0),
       error=character(0),
       output=character(0),
