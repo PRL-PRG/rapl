@@ -32,13 +32,13 @@ fi
 # process arguments
 # the parallel args are separated by ::
 
-parallel_opts=""
+parallel_opts="$EXTRA_PARALLEL_OPTS"
 opts=""
 cmd=""
 
 while [[ $# -gt 0 ]]; do
     if [ "$1" == "::" ]; then
-        parallel_opts="$cmd $opts"
+        parallel_opts="$parallel_opts $cmd $opts"
         opts=""
         cmd=""
     elif [ -z "$cmd" ]; then
@@ -49,7 +49,10 @@ while [[ $# -gt 0 ]]; do
     shift 1
 done
 
+# trimp white spaces
+parallel_opts="${parallel_opts##*( )}"
 parallel_opts="${parallel_opts%%*( )}"
+
 cmd="$(realpath $cmd)"
 
 if [ ! -x "$cmd" ]; then
