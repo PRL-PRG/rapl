@@ -109,7 +109,7 @@ parallel \
     --result "$parallel_results" \
     --tagstring "$TASK_NAME - {}" \
     --timeout $TIMEOUT \
-    --workdir "$OUTPUT_DIR/{1/}/" \
+    --workdir "$OUTPUT_DIR/{1}/" \
     $parallel_opts \
     "$cmd" $opts
 
