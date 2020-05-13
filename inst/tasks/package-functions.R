@@ -7,6 +7,11 @@ library(tibble)
 
 OUTPUT_FILE <- "functions.csv"
 
+is_s3 <- function(fun) {
+  globals <- codetools::findGlobals(fun, merge = FALSE)$functions
+  any(globals == "UseMethod" | globals == "NextMethod")
+}
+
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) != 1) {
   stop("Missing a path to the package source")
@@ -31,6 +36,14 @@ num_params <- sapply(params, length)
 
 has_elipsis <- sapply(params, function(x) "..." %in% x)
 
-df <- tibble(fun=function_bindings, num_params, has_elipsis, exported=function_bindings %in% exports)
+is_s3 <- sapply(functions, is_s3)
+
+df <- tibble(
+  fun=function_bindings,
+  num_params,
+  has_elipsis,
+  exported=function_bindings %in% exports,
+  s3=is_s3
+)
 
 write_csv(df, OUTPUT_FILE)
