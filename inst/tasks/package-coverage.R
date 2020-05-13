@@ -31,7 +31,7 @@ do_coverage <- function(type) {
 
     df <- tally_coverage(pc, by=COVERAGE_BY)
     df <- add_column(df, type=type, .before="filename")
-    write_csv(df, COVERAGE_DETAILS_FILENAME, append=TRUE)
+    write_csv(df, COVERAGE_DETAILS_FILENAME, append=file_exists(COVERAGE_DETAILS_FILENAME))
 
     coverage_expression <- percent_coverage(df, by="expression")
     coverage_line <- percent_coverage(df, by="line")
