@@ -7,7 +7,10 @@
 run_all(
   package,
   runnable_code_file,
-  runnable_code_path = dirname(runnable_code_file)
+  runnable_code_path = dirname(runnable_code_file),
+  runner = run_one,
+  run_before = NULL,
+  run_after = NULL
 )
 }
 \description{
