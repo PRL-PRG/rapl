@@ -6,7 +6,7 @@
 
 options(error = function() { traceback(3); q(status=1) })
 
-OUTPUT_FILENAME <- "run.csv"
+library(rapr)
 
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) != 2) {
@@ -29,14 +29,15 @@ if (!require(package, character.only=TRUE)) {
 runnable_code_path <- args[2]
 runnable_code_file <- file.path(runnable_code_path, "runnable-code.csv")
 
-cat("Lib paths:\n")
-cat(paste0(.libPaths(), col="\n"))
+cat("Lib paths: ", paste0(.libPaths(), collapse=":"), "\n")
 
-df <- rapr::run_all(
-  package,
-  runnable_code_file,
-  run_before=getOption("rapr.run_before"),
-  run_after=getOption("rapr.run_after")
-)
+df <- local({
+  rapr::run_all(
+    package,
+    runnable_code_file,
+    run_before=getOption("rapr.run_before"),
+    run_after=getOption("rapr.run_after")
+  )
+})
 
-write.csv(df, OUTPUT_FILENAME, row.names=FALSE)
+write.csv(df, "run.csv", row.names=FALSE)
