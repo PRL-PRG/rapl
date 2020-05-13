@@ -17,7 +17,14 @@ run_test_env <- function(package) {
 #' @export
 run_test_dir <- function(package, path, ...) {
   env <- run_test_env(package)
-  withr::local_options(list(topLevelEnvironment=env))
+  withr::local_options(
+    list(
+      topLevelEnvironment=env,
+      # need to set this to prevent quick death when the error is set to quit
+      # the session
+      error=NULL
+    )
+  )
   withr::local_envvar(list(TESTTHAT_PKG=package, TESTTHAT_DIR=path))
   testthat::test_dir(path=path, env=env, ...)
 }
@@ -80,7 +87,7 @@ run_one <- function(package, file) {
 #' @export
 run_all <- function(package, runnable_code_file,
                     runnable_code_path=dirname(runnable_code_file),
-                    run_before=NULL, run_after=NULL) {
+                    runner=run_one, run_before=NULL, run_after=NULL) {
 
   if (!file.exists(runnable_code_file)) {
     stop(runnable_code_file, ": no such runnable code file (wd=", getwd(), ")")
@@ -101,7 +108,7 @@ run_all <- function(package, runnable_code_file,
       run_before(package, file, type)
     }
 
-    r <- run_one(package, file)
+    r <- runner(package, file)
     v <- cbind(i, r)
 
     if (!is.null(run_after)) {
