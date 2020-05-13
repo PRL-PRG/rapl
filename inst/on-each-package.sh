@@ -23,7 +23,7 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-TASK_NAME=$(basename "${1%.*}")
+TASK_NAME=${TASK_NAME:-$(basename "${1%.*}")}
 : "${TASK_NAME:?Not set}"
 : "${R_LIBS:?Not set}"
 : "${R_BIN_DIR:?Not set}"
