@@ -5,7 +5,7 @@ options(
   genthat.source_paths=Sys.getenv("PACKAGES_SRC_DIR"),
   genthat.keep_failed_tests=T,
   genthat.keep_failed_traces=T,
-  genthat.keep_all_traces=T
+  genthat.keep_all_traces=F
 )
 
 library(genthat)
@@ -16,7 +16,7 @@ if (length(args) != 1) {
   stop("Missing a path to the package source")
 }
 
-package <- args[1]
+package <- basename(args[1])
 
 df <- gen_from_package(
   package,
