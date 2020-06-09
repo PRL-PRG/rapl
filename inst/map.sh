@@ -70,6 +70,7 @@ OUTPUT_DIR=$RUN_DIR/$TASK_NAME
 
 parallel_log="$OUTPUT_DIR/parallel.log"
 parallel_results="$OUTPUT_DIR/parallel-results.csv"
+parallel_results="$OUTPUT_DIR/{/}/"
 
 echo "* R_LIBS: $R_LIBS"
 echo "* R_BIN_DIR: $R_BIN_DIR"
@@ -91,8 +92,8 @@ function backup_file {
 }
 
 # backup parallel log
-backup_file "$parallel_log"
-backup_file "$parallel_results"
+#backup_file "$parallel_log"
+#backup_file "$parallel_results"
 
 echo "$NUM_JOBS" > "$JOBS_FILE"
 
@@ -102,6 +103,7 @@ export OMP_NUM_THREADS=1
 
 parallel \
     --bar \
+    --files \
     --env OMP_NUM_THREADS \
     --env R_LIBS \
     --joblog "$parallel_log" \

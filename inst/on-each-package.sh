@@ -60,6 +60,8 @@ echo "$NUM_JOBS" > "$JOBS_FILE"
 # try to work out around too much parallelism
 export OMP_NUM_THREADS=1
 
+base_dir="$(dirname $(realpath $0))"
+
 echo "PACKAGES: $PACKAGES"
 echo "PATH: $PATH"
 echo "R_LIBS: $R_LIBS"
@@ -67,6 +69,7 @@ echo "parallel.log: $parallel_log"
 echo
 echo "command: $cmd"
 echo "args: $@"
+echo "base_dir: $basedir"
 
 eval "$pkg_listing_cmd" | \
     parallel \
@@ -81,4 +84,4 @@ eval "$pkg_listing_cmd" | \
     --timeout $TIMEOUT \
     --workdir "$OUTPUT_DIR/{/}/" \
     "$PARALLEL_ARGS" \
-    "$cmd" "$PACKAGES_SRC_DIR/{/}" "$@"
+    "$base_dir/run-job.sh" "$cmd" "$PACKAGES_SRC_DIR/{/}" "$@"
