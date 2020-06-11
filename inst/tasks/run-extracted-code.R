@@ -4,8 +4,6 @@
 # any dependencies except for base R with the exception
 # of rapr
 
-options(error = function() { traceback(3); q(status=1) })
-
 library(rapr)
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -30,6 +28,7 @@ runnable_code_path <- args[2]
 runnable_code_file <- file.path(runnable_code_path, "runnable-code.csv")
 
 cat("Lib paths: ", paste0(.libPaths(), collapse=":"), "\n")
+Sys.setenv(RAPR_CWD=getwd())
 
 df <- local({
   rapr::run_all(
