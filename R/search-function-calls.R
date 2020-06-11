@@ -16,7 +16,7 @@ search_function_calls <- function(expr, functions, srcref=NULL) {
           fqn <- str_c(as.character(fun[-1L]), collapse=":::")
           fqn %in% functions
         } else {
-          is_interesting_call(fun[[1L]])
+          FALSE
         }
       } else {
         is_interesting_call(fun)
