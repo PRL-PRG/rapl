@@ -6,6 +6,7 @@ library(readr)
 library(tibble)
 
 OUTPUT_FILE <- "functions.csv"
+OUTPUT_CLASSES_FILE <- "classes.csv"
 
 is_s3 <- function(fun) {
   globals <- codetools::findGlobals(fun, merge = FALSE)$functions
@@ -32,18 +33,44 @@ functions <- lapply(function_bindings, get0, envir=ns)
 
 params <- lapply(functions, function(x) names(formals(x)))
 
-num_params <- sapply(params, length)
+s3_methods <- if (exists(".__S3MethodsTable__.", envir=ns)) {
+  ms <- ns$.__S3MethodsTable__.
+  ls(envir=ms, all.names=T)
+} else {
+  character(0)
+}
 
-has_elipsis <- sapply(params, function(x) "..." %in% x)
+s3_methods <- NULL
+if (exists(".__NAMESPACE__.", envir=ns)) {
+  s3_methods <- ns$.__NAMESPACE__.$S3methods[,3]
+}
 
-is_s3 <- sapply(functions, is_s3)
+if (is.null(s3_methods)) {
+  s3_methods <- character(0)
+}
+
+is_s3_dispatch <- sapply(functions, is_s3)
+is_s3_method <- function_bindings %in% s3_methods
 
 df <- tibble(
   fun=function_bindings,
-  num_params,
-  has_elipsis,
   exported=function_bindings %in% exports,
-  s3=is_s3
+  is_s3_dispatch,
+  is_s3_method,
+  params=sapply(params, paste0, collapse=";")
 )
 
 write_csv(df, OUTPUT_FILE)
+
+s3_classes <-  if (exists(".S3MethodsClasses", envir=ns)) {
+  cs <- ns$.S3MethodsClasses
+  ls(envir=cs, all.names=T)
+} else {
+  character(0)
+}
+
+df <- tibble(
+  class=s3_classes
+)
+
+write_csv(df, OUTPUT_CLASSES_FILE)
