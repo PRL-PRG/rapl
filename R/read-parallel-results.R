@@ -95,7 +95,9 @@ read_files <- function(jobs, files,
 #' @export
 #'
 read_parallel_seq <- function(path, quiet=TRUE) {
-  files <- dir_ls(path, regex="/seq$", recurse=1)
+#  from some reason dir_ls keeps crashing on us with segfaults
+#  files <- dir_ls(path, regex="/seq$", recurse=1)
+  files <- list.files(path, pattern="^seq$", full.names=TRUE, recursive=TRUE)
   jobs <- basename(dirname(files))
 
   read_files(
