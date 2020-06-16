@@ -18,6 +18,6 @@ files <-
     discard(function(f) f %in% c("run/run-extracted-code-contractr/animint2/contracts.fst",
                                  "run/run-extracted-code-contractr/stats19/contracts.fst"))
 
-df <- bind_rows(Map(function(f) { print(f); read_fst(f) }, files))
+df <- bind_rows(Map(function(f) { print(f); tryCatch(read_fst(f), error = function(e) data.frame()) }, files))
 
 write_fst(df, path(data_dir, "contracts.fst"))
