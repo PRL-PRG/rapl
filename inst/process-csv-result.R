@@ -33,11 +33,10 @@ cat("\n\n")
 
 good_results <- filter(results, exitval==0)
 paths <- good_results$path
-jobs <- basename(paths)
 
 cat("Processing results:\n\n")
 for (file in csv_files) {
-  files <- path(paths, file)
+  jobs <- map_dfr(paths, ~tibble(job=basename(.x), file=dir_ls(.x, regexp=file, recurse=TRUE)))
   merged_csv_file <- path(run_dir, file)
 
   if (file_exists(merged_csv_file)) {
@@ -45,8 +44,8 @@ for (file in csv_files) {
   }
 
   df <- read_files(
-    jobs,
-    files,
+    jobs$job,
+    jobs$file,
     readf=function(file) suppressMessages(read_csv(file)),
     mapf=function(job, df) {
       # this is a bit misuse, the work here is done by a side-effect
