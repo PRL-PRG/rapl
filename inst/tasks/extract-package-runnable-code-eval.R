@@ -5,15 +5,18 @@ options(error = function() { traceback(3); q(status=1) })
 library(glue)
 library(readr)
 library(rapr)
+library(evil)
 
 wrap <- function(package, file, type, body) {
   glue(
-    "rapr::with_capturing_calls_to_file(
-       list(eval, evalq),
-       file.path(Sys.getenv('RAPR_CWD'), paste0('{type}-', basename('{file}'), '.RDS')), {{
-       {body}
-    }}
-    )"
+      "library(evil)",
+      "",
+      "trace_eval(datadir = file.path(Sys.getenv('RAPR_CWD'), basename('{file}')),",
+      "           quote = TRUE,",
+      "           code = {{",
+      "    {body}",
+      "}})",
+      .sep = "\n"
   )
 }
 
