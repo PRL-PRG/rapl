@@ -17,6 +17,7 @@ available <- if (!is.na(pkgs_file)) readLines(pkgs_file) else available.packages
 installed <- installed.packages(lib.loc=R_LIBS)[,1]
 missing <- setdiff(available, installed)
 
+sessionInfo()
 message("Installing ", length(missing), " packages from ", CRAN_LOCAL_MIRROR ," into ", R_LIBS)
 
 # CRAN repository to use e.g. https://cloud.r-project.org
