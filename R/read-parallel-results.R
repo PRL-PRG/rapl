@@ -1,5 +1,4 @@
 #' @importFrom dplyr left_join bind_cols
-#' @importFrom fs dir_ls path
 #' @importFrom purrr map_dfr
 #' @importFrom stringr str_c
 #' @importFrom tibble tibble as_tibble
@@ -34,7 +33,7 @@ read_parallel_results <- function(path, stdout=TRUE, stderr=TRUE) {
       as_tibble(row)
     }
 
-    files <- path(df$path, name)
+    files <- file.path(df$path, name)
     content <- read_files(df$job, files)
     map_dfr(content, process_row)
   }
@@ -90,7 +89,6 @@ read_files <- function(jobs, files,
 }
 
 #' @importFrom dplyr bind_rows
-#' @importFrom fs dir_ls
 #' @importFrom purrr map2_dfr keep
 #' @export
 #'
