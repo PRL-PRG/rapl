@@ -26,6 +26,7 @@ run_test_dir <- function(package, path, ...) {
     )
   )
   withr::local_envvar(list(TESTTHAT_PKG=package, TESTTHAT_DIR=path))
+  # TODO use external R process
   testthat::test_dir(path=path, env=env, ...)
 }
 
@@ -54,11 +55,23 @@ run_one <- function(package, file) {
           run_test_dir(package, file.path(dir, "testthat"))
         )
       } else {
+        out_file <- paste0(tools::file_path_sans_ext(file), ".out")
         time <- system.time(
-          sys.source(
-            file,
-            envir=run_test_env(package),
-            chdir=TRUE
+          callr::r_vanilla(
+            sys.source,
+            args=list(
+              file=file,
+              envir=run_test_env(package),
+              chdir=TRUE
+            ),
+            stdout=out_file,
+            stderr=out_file,
+            env=c(
+              "LANGUAGE"="en",
+              "LC_COLLATE"="C",
+              "LC_TIME"="C",
+              "SRCDIR"="."
+            )
           )
         )
       }
