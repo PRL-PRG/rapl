@@ -3,10 +3,9 @@
 set -e
 
 CRAN_MIRROR_URL=${CRAN_MIRROR_URL:-"https://cloud.r-project.org"}
-PACKAGES_ZIP_DIR=${PACKAGES_ZIP_DIR:-"CRAN"}
 R_LIBS=${R_LIBS:-"library"}
 
-def_dest="$PACKAGES_ZIP_DIR"
+def_dest=""
 def_libs="$R_LIBS"
 def_mirror="$CRAN_MIRROR_HOST"
 def_package_file=""
@@ -16,7 +15,7 @@ function show_help() {
     echo
     echo "where:"
     echo
-    echo "  -d PATH      where to keep downloaded sources (defaults to $def_dest)"
+    echo "  -d PATH      where to keep downloaded sources (optional)"
     echo "  -f FILE      list of packages (defaults to all avalable packages)"
     echo "  -l PATH      where to install the packages (defaults to $def_lib)"
     echo "  -m HOST      mirror to use (defaults to $def_mirror)"
@@ -49,7 +48,13 @@ echo "Installing packages from $mirror into $libs (sources in $dest)"
 
 set -o xtrace
 
-[ -d "$dest" ] || mkdir -p "$dest"
+if [ ! -z "$dest" ]; then
+  [ -d "$dest" ] || mkdir -p "$dest"
+  dest_opt="'$dest'"
+else
+  dest_opt=NULL
+fi
+
 [ -d "$libs" ] || mkdir -p "$libs"
 
 if [ ! -z "$package_file" ]; then
@@ -70,7 +75,7 @@ message("Installing ", length(missing), " packages from $mirror into $libs")
 install.packages(
   missing,
   lib='$libs',
-  destdir='$dest',
+  destdir=$dest_opt,
   dependencies=TRUE,
   INSTALL_opts=c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"),
   Ncpus=parallel::detectCores()
