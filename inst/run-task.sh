@@ -18,29 +18,29 @@ _int() {
 if [[ -f "$STATS" && -f "$OUTPUT" ]]; then
     # TODO: check args
     exitval=$(tail -1 "$STATS" | cut -f 1 -d,)
-    echo "Task '$@' has been already run with exit code: $exitval"
-    case "$REDO" in
+    echo -n "last run: $exitval - "
+    case "$RUNR_RERUN" in
         "zero")
             if [[ $exitval -ne 0 ]]; then
-                echo "Skipping"
+                echo "skipping"
                 exit 0
             else
-                echo "Forcing rerun"
+                echo "forcing"
             fi
         ;;
         "non-zero")
             if [[ $exitval -eq 0 ]]; then
-                echo "Skipping"
+                echo "skipping"
                 exit 0
             else
-                echo "Forcing rerun"
+                echo "forcing"
             fi
         ;;
         "always")
-            echo "Forcing rerun"
+            echo "forcing"
         ;;
         *)
-            echo "Skipping"
+            echo "skipping"
             exit 0
         ;;
     esac
