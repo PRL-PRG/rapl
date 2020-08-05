@@ -1,5 +1,5 @@
-Package: rapr
-Title: R analysis of GNU parallel runs
+Package: runr
+Title: Run R experiments
 Version: 0.0.1
 Authors@R:
     person(given = "Filip",
@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "krikava@gmail.com",
            comment = c(ORCID = "0000-0002-0478-6202"))
-Description: Contains a set of helper functions and scripts that work with the result of GNU parallel jobs.
+Description: Contains a set of helper functions and scripts for running R-related experiments.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

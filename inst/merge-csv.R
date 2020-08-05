@@ -3,7 +3,7 @@
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(purrr))
-suppressPackageStartupMessages(library(rapr))
+suppressPackageStartupMessages(library(runr))
 suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(stringr))
 

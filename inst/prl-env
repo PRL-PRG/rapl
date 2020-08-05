@@ -17,12 +17,15 @@ export CRAN_MIRROR_URL="https://$CRAN_MIRROR_HOST/R"
 export CRAN_MIRROR_DIR=$R_PROJECT_BASE_DIR/CRAN
 export CRAN_LOCAL_MIRROR="file:///$CRAN_MIRROR_DIR"
 
-export PACKAGES_SRC_DIR=$R_PROJECT_BASE_DIR/CRAN/extracted
+export PACKAGES_BIN_DIR=$CRAN_MIRROR_DIR/src/contrib
+export PACKAGES_SRC_DIR=$CRAN_MIRROR_DIR/extracted
 export R_LIBS=$R_PROJECT_BASE_DIR/library/$R_VERSION
 
 export RUN_DIR="$R_PROJECT_BASE_DIR/run"
 
 export PATH="$R_BIN_DIR:$PATH"
+
+export OMP_NUM_THREADS=1
 
 if [ -z "$DISPLAY" ]; then
     local_display=:6

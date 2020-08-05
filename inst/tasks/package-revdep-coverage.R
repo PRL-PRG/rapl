@@ -6,7 +6,7 @@ options(repos=Sys.getenv("CRAN_LOCAL_MIRROR", "https://cloud.r-project.org"))
 library(covr)
 library(fs)
 library(purrr)
-library(rapr)
+library(runr)
 library(readr)
 library(stringr)
 library(tibble)
@@ -35,7 +35,7 @@ coverage_one <- function(revdep, tmp_lib) {
   }
 
   coverage_code <- str_glue("
-    df <- rapr::run_all('{revdep}', '{runnable_code_file}')
+    df <- runr::run_all('{revdep}', '{runnable_code_file}')
     df <- cbind(data.frame(package='{revdep}', row.names=FALSE, stringsAsFactors=FALSE), df)
     write.table(
       df,
@@ -49,9 +49,9 @@ coverage_one <- function(revdep, tmp_lib) {
   ")
 
   tryCatch({
-    ## pc <- rapr::package_coverage(package_path, tmp_lib, type="none", code=coverage_code, quiet=FALSE)
+    ## pc <- runr::package_coverage(package_path, tmp_lib, type="none", code=coverage_code, quiet=FALSE)
     pc <- callr::r_copycat(
-      function(...) rapr::package_coverage(...),
+      function(...) runr::package_coverage(...),
       list(
         package_path,
         tmp_lib=tmp_lib,
