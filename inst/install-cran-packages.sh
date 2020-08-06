@@ -36,6 +36,7 @@ while getopts "h?d:f:l:m:" opt; do
     d)  dest=$OPTARG
         ;;
     f)  package_file=$OPTARG
+        [ "$package_file" == "-" ] && package_file="stdin"
         ;;
     l)  libs=$OPTARG
         ;;
@@ -58,12 +59,13 @@ fi
 [ -d "$libs" ] || mkdir -p "$libs"
 
 if [ ! -z "$package_file" ]; then
-  package_opt="readLines('$package_file')"
+  package_opt="readLines(file('$package_file'))"
 else
   package_opt="available.packages()[,1]"
 fi
 
-cat << EOF | R --slave
+temp=$(tempfile)
+cat << EOF > "$temp"
 options(repos='$mirror')
 
 requested <- $package_opt
@@ -82,3 +84,4 @@ install.packages(
 )
 EOF
 
+R --slave -f "$temp"
