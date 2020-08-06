@@ -7,18 +7,18 @@ CONFIGURE_OPTS=${CONFIGURE_OPTS:-""}
 CRAN_MIRROR_URL=${CRAN_MIRROR_URL:-"https://cloud.r-project.org"}
 MAKE_OPTS=${MAKE_OPTS:-"-j"}
 
-def_dest=${R_BASE_DIR:-"."}
-def_version=${R_VERSION_FULL:-"4.0.2"}
-def_source="$CRAN_MIRROR_URL/src/base/R-${def_version:0:1}/R-$def_version.tar.gz"
+def_dest="."
+def_version=""
+def_source="$CRAN_MIRROR_URL/src/base/R-latest.tar.gz"
 
 function show_help() {
-    echo "Usage: $(basename $0) [-d PATH] [-s URL ] [-v VERSION]"
+    echo "Usage: $(basename $0) [-d PATH ] [-s URL ] [-v VERSION ]"
     echo
     echo "where:"
     echo
     echo "  -d PATH      to install R to (defaults to $def_dest)"
     echo "  -s URL       to get R from (defaults to $def_source)"
-    echo "  -v VERSION   of R to install (defaults to $def_version)"
+    echo "  -v VERSION   of R to install"
     echo
 }
 
@@ -37,11 +37,12 @@ while getopts "h?d:s:v:" opt; do
     s)  source=$OPTARG
         ;;
     v)  version=$OPTARG
+        source="$CRAN_MIRROR_URL/src/base/R-${version:0:1}/R-$version.tar.gz"
         ;;
     esac
 done
 
-echo "Installing R $version from $source into $dest"
+echo "Installing R from $source into $dest"
 
 set -o xtrace
 
@@ -59,7 +60,7 @@ export CFLAGS="-g3 -O2 -ggdb3"
 export R_KEEP_PKG_SOURCE=yes
 export CXX="g++"
 
-./configure --prefix="$dest/R-$version" \
+./configure --prefix="$(pwd)" \
     --with-blas --with-lapack --without-ICU --with-x \
     --with-tcltk --without-aqua --with-recommended-packages \
     --without-internal-tzcode --with-included-gettext \
