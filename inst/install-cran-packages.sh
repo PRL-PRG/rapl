@@ -7,7 +7,7 @@ R_LIBS=${R_LIBS:-"library"}
 
 def_dest=""
 def_libs="$R_LIBS"
-def_mirror="$CRAN_MIRROR_HOST"
+def_mirror="$CRAN_MIRROR_URL"
 def_package_file=""
 
 function show_help() {
