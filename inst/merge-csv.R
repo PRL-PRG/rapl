@@ -22,13 +22,13 @@ csv_files <- args[-1]
 
 cat("Merging CSVs:\n\n")
 for (file in csv_files) {
-  files <- list.files(run_dir, pattern=file, full.name=TRUE, recursive=TRUE)
   merged_csv_file <- file.path(run_dir, file)
 
   if (file.exists(merged_csv_file)) {
     unlink(merged_csv_file)
   }
 
+  files <- list.files(run_dir, pattern=file, full.name=TRUE, recursive=TRUE)
   df <- read_files(
     dirname(files),
     files,
