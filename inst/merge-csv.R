@@ -39,7 +39,7 @@ for (file in csv_files) {
       # and use all memory since since some CSV files are rather large
       # this demonstrates a bad API!
       df %>%
-        mutate(package=job) %>%
+        mutate(package=basename(job)) %>%
         select(package, everything()) %>%
         write_csv(merged_csv_file, append=file.exists(merged_csv_file))
       NULL
