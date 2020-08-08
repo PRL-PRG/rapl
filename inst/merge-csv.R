@@ -2,6 +2,7 @@
 
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(fs))
 suppressPackageStartupMessages(library(purrr))
 suppressPackageStartupMessages(library(runr))
 suppressPackageStartupMessages(library(readr))
@@ -38,8 +39,14 @@ for (file in csv_files) {
       # appending to the CSV file - otherwise it will be too slow
       # and use all memory since since some CSV files are rather large
       # this demonstrates a bad API!
+      #
+
+      # merge-csv.R run/revdeps run.csv
+      # run/revdeps/abind/abc/xyz/run.csv
+      package <- path_split(path_rel(job, run_dir))[[1]][1]
+
       df %>%
-        mutate(package=basename(job)) %>%
+        mutate(package=package) %>%
         select(package, everything()) %>%
         write_csv(merged_csv_file, append=file.exists(merged_csv_file))
       NULL
