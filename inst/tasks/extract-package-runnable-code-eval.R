@@ -9,13 +9,14 @@ library(evil)
 
 wrap <- function(package, file, type, body) {
   glue(
-      "library(evil)",
-      "",
-      "trace_eval(datadir = file.path(Sys.getenv('RAPR_CWD'), basename('{file}')),",
-      "           quote = TRUE,",
-      "           code = {{",
-      "    {body}",
-      "}})",
+      "evil::trace_to_file(",
+      "  path = file.path(Sys.getenv('RAPR_CWD'), basename('{file}')),",
+      "  context = eval(Sys.getenv('INSTRUMENTR_CONTEXT')),",
+      "  quote = TRUE,",
+      "  code = {{",
+      "    {gsub('\n', '\n    ', body)}",
+      "  }}",
+      ")",
       .sep = "\n"
   )
 }
