@@ -2,7 +2,6 @@
 
 suppressPackageStartupMessages(library(dplyr))
 library(knitr)
-library(fs)
 library(purrr)
 library(readr)
 library(stringr)
@@ -15,13 +14,13 @@ if (length(args) < 1) {
   q(status=1)
 }
 
-stopifnot(fs::is_dir(args[1]))
+stopifnot(dir.exists(args[1]))
 
 run_dir <- args[1]
 csv_files <- args[-1]
 
 cat("Reading GNU parallel run data...\n\n")
-parallel_results_file <- path(run_dir, "parallel-results.csv")
+parallel_results_file <- file.path(run_dir, "parallel-results.csv")
 results <- read_parallel_results(run_dir)
 
 cat(str_glue("Writing results into {parallel_results_file}\n"))
@@ -36,22 +35,23 @@ paths <- good_results$path
 
 cat("Processing results:\n\n")
 for (file in csv_files) {
-  jobs <- map_dfr(paths, ~tibble(job=basename(.x), file=dir_ls(.x, regexp=file, recurse=TRUE)))
-  merged_csv_file <- path(run_dir, file)
+  jobs <- map_dfr(paths, ~tibble(job=basename(.x), file=list.files(.x, pattern=file, recursive=TRUE)))
+  merged_csv_file <- file.path(run_dir, file)
 
-  if (file_exists(merged_csv_file)) {
-    file_delete(merged_csv_file)
+  if (file.exists(merged_csv_file)) {
+    unlink(merged_csv_file)
   }
 
   df <- read_files(
     jobs$job,
     jobs$file,
-    readf=function(file) suppressMessages(read_csv(file)),
+    readf=function(file) read_csv(file),
     mapf=function(job, df) {
       # this is a bit misuse, the work here is done by a side-effect
       # appending to the CSV file - otherwise it will be too slow
       # and use all memory since since some CSV files are rather large
       # this demonstrates a bad API!
+      warning(typeof(df))
       df %>%
         mutate(package=job) %>%
         select(package, everything()) %>%
@@ -59,7 +59,7 @@ for (file in csv_files) {
       NULL
     },
     mapf_error=function(job, file, message) {
-      if (file_exists(file)) warning(job, ": ", file, ": ", message)
+      if (file.exists(file)) warning(job, ": ", file, ": ", message)
       NULL
     }
   )
