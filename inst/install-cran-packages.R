@@ -6,6 +6,11 @@ install_cran_packages <- function(mirror,
                                   from=NULL) {
   options(repos=mirror)
 
+  output_file <- file.path(lib, "packages-installed.csv")
+  if (file.exists(output_file)) {
+    unlink(output_file)
+  }
+
   requested <- if (is.null(from)) {
     available.packages()[,1]
   } else {
@@ -31,7 +36,6 @@ install_cran_packages <- function(mirror,
     Ncpus=parallel::detectCores()
   )
 
-  output_file <- file.path(lib, "packages-installed.csv")
 
   write.csv(
     as.data.frame(res, make.names=FALSE),
