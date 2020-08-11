@@ -55,14 +55,3 @@ show_help <- function() {
   )
 }
 
-CRAN_MIRROR_URL <- Sys.getenv("CRAN_MIRROR_URL", "https://cloud.r-project.org")
-R_LIBS <- Sys.getenv("R_LIBS", NULL)
-PACKAGES_ZIP_DIR <- Sys.getenv("PACKAGES_ZIP_DIR", "CRAN/src/contrib")
-PACKAGES_FILE <- Sys.getenv("PACKAGES_FILE", NULL)
-
-install_cran_packages(
-  mirror=CRAN_MIRROR_URL,
-  libs=R_LIBS,
-  destdir=PACKAGES_ZIP_DIR,
-  from=PACKAGES_FILE
-)
