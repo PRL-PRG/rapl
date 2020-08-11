@@ -4,7 +4,7 @@ options(error = function() { traceback(3); q(status=1) })
 
 library(glue)
 library(readr)
-library(rapr)
+library(runr)
 
 wrap <- function(package, file, type, body) {
   glue(
@@ -12,7 +12,7 @@ wrap <- function(package, file, type, body) {
       {body}
     }},
     package_under_analysis='{package}',
-    output_dirpath=file.path(Sys.getenv('RAPR_CWD'), '{package}', '{type}'),
+    output_dirpath=file.path(Sys.getenv('RUNR_CWD'), '{package}', '{type}'),
     analyzed_file_name='{basename(file)}'
     )"
   )
@@ -46,8 +46,8 @@ wrap_files <- Vectorize(function(package, file, type) {
 }, vectorize.args=c("file", "type"))
 
 script <- system.file(
-  "tasks/extract-package-runnable-code.R",
-  package="rapr",
+  "tasks/package-runnable-code.R",
+  package="runr",
   mustWork=T
 )
 

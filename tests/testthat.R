@@ -1,4 +1,4 @@
 library(testthat)
-library(rapr)
+library(runr)
 
-test_check("rapr")
+test_check("runr")

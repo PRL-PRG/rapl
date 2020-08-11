@@ -4,7 +4,7 @@ options(error = function() { traceback(3); q(status=1) })
 
 library(glue)
 library(purrr)
-library(rapr)
+library(runr)
 library(readr)
 library(tibble)
 

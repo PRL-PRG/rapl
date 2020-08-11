@@ -116,6 +116,12 @@ extract_package_vignettes <- function(pkg, pkg_dir, output_dir) {
     return(character())
   }
 
+  dirs <- unique(dirname(files))
+  for (d in dirs) {
+      fs <- Sys.glob(file.path(d, "*"))
+      file.copy(fs, output_dir, recursive=TRUE)
+  }
+
   file.copy(files, to=output_dir)
   vignettes <- file.path(output_dir, basename(files))
 
