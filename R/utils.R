@@ -32,3 +32,10 @@ current_script <- function() {
     }
   }
 }
+
+#' @importFrom codetools findGlobals
+#' @export
+is_s3_dispatch_method <- function(fun) {
+  globals <- codetools::findGlobals(fun, merge = FALSE)$functions
+  any(globals == "UseMethod" | globals == "NextMethod")
+}
