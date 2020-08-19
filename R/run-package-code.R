@@ -44,7 +44,6 @@ rcmd_batch_runner <- function(file, out_file, quiet=F) {
   )
 }
 
-
 run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE) {
   stopifnot(file.exists(file))
   stopifnot(dir.exists(dirname(out_file)))
@@ -55,9 +54,10 @@ run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE) {
 
   cmd <- file.path(R.home("bin"), "R")
   args <- c(
-    "--vanilla",
+    "--no-save",
     "--quiet",
-    "--no-readline"
+    "--no-readline",
+    "--silent"
   )
   env <- c(
     "LANGUAGE=en",
@@ -68,7 +68,9 @@ run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE) {
     'R_TESTS=""',
     "R_BROWSER=false",
     "R_PDFVIEWER=false",
-    "R_BATCH=1"
+    "R_BATCH=1",
+    "R_KEEP_PKG_SOURCE=yes",
+    "R_KEEP_PKG_PARSE_DATA=yes"
   )
 
   if (!quiet) {
