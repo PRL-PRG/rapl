@@ -38,7 +38,7 @@ install_cran_packages <- function(mirror,
     destdir=destdir,
     dependencies=TRUE,
     INSTALL_opts=c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"),
-    Ncpus=floor(.5*parallel::detectCores())
+    Ncpus=floor(.9*parallel::detectCores())
   )
 
 
