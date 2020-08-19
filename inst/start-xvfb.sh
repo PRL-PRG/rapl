@@ -16,6 +16,6 @@ if [ -z "$NO_DISPLAY" -a -z "$DISPLAY" ]; then
         echo "There is something wrong with the Xvfb server." >&2
         echo "The environment is not correctly set!" >&2
     else
-        export DISPLAY=$local_display
+        echo "export DISPLAY=$local_display"
     fi
 fi
