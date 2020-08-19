@@ -49,7 +49,7 @@ wrap_files <- Vectorize(function(package, file, type) {
 }, vectorize.args=c("file", "type"))
 
 script <- system.file(
-  "tasks/extract-package-runnable-code.R",
+  "tasks/package-runnable-code.R",
   package="runr",
   mustWork=T
 )
