@@ -6,11 +6,11 @@ build: document
 	R CMD build .
 
 check: build
-	R CMD check rapr*tar.gz
+	R CMD check runr*tar.gz
 
 clean:
-	-rm -f rapr*tar.gz
-	-rm -fr rapr.Rcheck
+	-rm -f runr*tar.gz
+	-rm -fr runr.Rcheck
 
 test:
 	Rscript -e 'devtools::test()'

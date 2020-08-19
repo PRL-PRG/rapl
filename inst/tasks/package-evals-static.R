@@ -7,7 +7,7 @@ library(readr)
 library(tibble)
 library(withr)
 
-library(rapr)
+library(runr)
 
 OUTPUT_FILE <- "package-evals.csv"
 FUNCTIONS <- c(

@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-suppressPackageStartupMessages(library(rapr))
+suppressPackageStartupMessages(library(runr))
 suppressPackageStartupMessages(library(streamr))
 
 args <- commandArgs(trailingOnly=TRUE)
