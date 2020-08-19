@@ -27,6 +27,11 @@ install_cran_packages <- function(mirror,
     if (!is.null(lib) && !dir.exists(lib)) dir.create(lib, recursive=TRUE)
   }
 
+  # set package installation timeout
+  Sys.setenv(
+    _R_INSTALL_PACKAGES_ELAPSED_TIMEOUT_=Sys.getenv("_R_INSTALL_PACKAGES_ELAPSED_TIMEOUT_", "5000")
+  )
+
   res <- install.packages(
     missing,
     lib=lib,
