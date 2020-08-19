@@ -11,7 +11,7 @@ wrap <- function(package, file, type, body) {
   glue(
     "evil::write_eval_traces(",
     "  evil::trace_eval(",
-    "    quote = TRUE",
+    "    quote = TRUE,",
     "    code = {{",
     "      {gsub('\n', '\n      ', body)}",
     "    }}",
