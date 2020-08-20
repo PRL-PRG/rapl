@@ -150,7 +150,7 @@ run_all <- function(path, output_dir=getwd(), run_dir=tempfile(),
     return(result)
   }
 
-  if (!quiet) cat("Copying files from:", path, "to:", run_dir, "...")
+  if (!quiet) cat("Copying files from:", path, "to:", run_dir, "...\n")
   ret <- file.copy(files, run_dir, recursive=TRUE)
   if (!all(ret)) stop("Unable to copy:", files[!ret])
 
