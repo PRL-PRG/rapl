@@ -57,6 +57,13 @@ for (by in COVERAGE_BY) {
 
 types <- map_chr(str_split(COVERAGE_TYPES, ",")[[1]], ~trimws(., "both"))
 
+Sys.setenv(
+  R_TESTS="",
+  R_BROWSER="false",
+  R_PDFVIEWER="false",
+  R_BATCH="1"
+)
+
 coverage <- map_dfr(types, do_coverage_checked)
 
 write_csv(coverage, COVERAGE_FILE)
