@@ -28,15 +28,8 @@ runnable_code_path <- args[2]
 runnable_code_file <- file.path(runnable_code_path, "runnable-code.csv")
 
 cat("Lib paths: ", paste0(.libPaths(), collapse=":"), "\n")
+Sys.setenv(RAPR_CWD=getwd())
 Sys.setenv(RUNR_CWD=getwd())
 
-df <- local({
-  runr::run_all(
-    package,
-    runnable_code_file,
-    run_before=getOption("runr.run_before"),
-    run_after=getOption("runr.run_after")
-  )
-})
-
+df <- runr::run_all(runnable_code_path, quiet=FALSE)
 write.csv(df, "run.csv", row.names=FALSE)
