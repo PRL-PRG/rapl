@@ -23,11 +23,12 @@ wrap_files <- Vectorize(function(package, file, type) {
 
     if (type == "tests" &&
           (endsWith(tolower(file), "tests/testthat.r") ||
+             endsWith(tolower(file), "tests/test-all.r") ||
              endsWith(tolower(file), "tests/run-all.r")) &&
           dir.exists(file.path(dir, "testthat"))) {
       tt_dir <- file.path(dir, "testthat")
-      tt_helpers <- list.files(tt_dir, pattern="helper-.*\\.[rR]$", full.names=T, recursive=T)
-      tt_tests <- list.files(tt_dir, pattern="test-.*\\.[rR]$", full.names=T, recursive=T)
+      tt_helpers <- list.files(tt_dir, pattern="helper.*\\.[rR]$", full.names=T, recursive=T)
+      tt_tests <- list.files(tt_dir, pattern="test.*\\.[rR]$", full.names=T, recursive=T)
       tt_files <- c(tt_helpers, tt_tests)
 
       wrap_files(package, tt_files, rep("tests", length(tt_files)))
