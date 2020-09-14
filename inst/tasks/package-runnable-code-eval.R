@@ -4,19 +4,21 @@ options(error = function() { traceback(3); q(status=1) })
 
 library(glue)
 library(readr)
-library(rapr)
+library(runr)
 library(evil)
 
 wrap <- function(package, file, type, body) {
   glue(
-      "library(evil)",
-      "",
-      "trace_eval(datadir = file.path(Sys.getenv('RAPR_CWD'), basename('{file}')),",
-      "           quote = TRUE,",
-      "           code = {{",
-      "    {body}",
-      "}})",
-      .sep = "\n"
+    "evil::write_eval_traces(",
+    "  evil::trace_eval(",
+    "    quote = TRUE,",
+    "    code = {{",
+    "      {gsub('\n', '\n      ', body)}",
+    "    }}",
+    "  ),",
+    "  datadir=file.path(Sys.getenv('RUNR_CWD'), basename('{file}'))",
+    ")",
+    .sep = "\n"
   )
 }
 
@@ -48,8 +50,8 @@ wrap_files <- Vectorize(function(package, file, type) {
 }, vectorize.args=c("file", "type"))
 
 script <- system.file(
-  "tasks/extract-package-runnable-code.R",
-  package="rapr",
+  "tasks/package-runnable-code.R",
+  package="runr",
   mustWork=T
 )
 

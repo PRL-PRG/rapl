@@ -9,10 +9,36 @@ library(readr)
 library(stringr)
 library(tibble)
 
-COVERAGE_FILENAME <- "coverage.csv"
-COVERAGE_DETAILS_FILENAME <- "coverage-details.csv"
-COVERAGE_BY="expression"
-TYPES <- c("all", "examples", "tests", "vignettes")
+COVERAGE_FILE <- "coverage.csv"
+COVERAGE_DETAILS_FILE <- "coverage-details-{by}.csv"
+COVERAGE_BY <- c("line", "expression")
+COVERAGE_TYPES <- Sys.getenv("RUNR_PACKAGE_COVERAGE_TYPE", "all,examples,tests,vignettes")
+
+do_coverage <- function(type) {
+  pc <- package_coverage(path, type=type, quiet=FALSE)
+  saveRDS(pc, str_glue("coverage-raw-{type}.RDS"))
+
+  df <- tibble(type, error=NA)
+
+  for (by in COVERAGE_BY) {
+    file <- str_glue(COVERAGE_DETAILS_FILE)
+
+    cvr <- tally_coverage(pc, by=by)
+    cvr <- add_column(cvr, type=type, .before="filename")
+
+    write_csv(cvr, file, append=file_exists(file))
+
+    pct <- percent_coverage(cvr, by=by)
+
+    df <- add_column(df, !!(str_c("coverage_", by)) := pct)
+  }
+
+  df
+}
+
+do_coverage_checked <- function(type) {
+  tryCatch(do_coverage(type), error=function(e) tibble(type, error=e$message))
+}
 
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) != 1) {
@@ -21,32 +47,25 @@ if (length(args) != 1) {
 
 path <- args[1]
 
-message(tempfile())
-message(paste0(.libPaths(), col="\n"))
 
-do_coverage <- function(type) {
-  df <- tryCatch({
-    pc <- package_coverage(path, type=type, quiet=FALSE)
-    saveRDS(pc, str_glue("coverage-raw-{type}.RDS"))
-
-    df <- tally_coverage(pc, by=COVERAGE_BY)
-    df <- add_column(df, type=type, .before="filename")
-    write_csv(df, COVERAGE_DETAILS_FILENAME, append=file_exists(COVERAGE_DETAILS_FILENAME))
-
-    coverage_expression <- percent_coverage(df, by="expression")
-    coverage_line <- percent_coverage(df, by="line")
-
-    tibble(type, coverage_expression, coverage_line, error=NA)
-  }, error=function(e) {
-    tibble(type, coverage_expression=NA, coverage_line=NA, error=e$message)
-  })
+for (by in COVERAGE_BY) {
+  file <- str_glue(COVERAGE_DETAILS_FILE)
+  if (file_exists(file)) {
+    file_delete(file)
+  }
 }
 
-if (file_exists(COVERAGE_DETAILS_FILENAME)) {
-  file_delete(COVERAGE_DETAILS_FILENAME)
-}
+types <- map_chr(str_split(COVERAGE_TYPES, ",")[[1]], ~trimws(., "both"))
 
-coverage <- map_dfr(TYPES, do_coverage)
-write_csv(coverage, COVERAGE_FILENAME)
+Sys.setenv(
+  R_TESTS="",
+  R_BROWSER="false",
+  R_PDFVIEWER="false",
+  R_BATCH="1"
+)
+
+coverage <- map_dfr(types, do_coverage_checked)
+
+write_csv(coverage, COVERAGE_FILE)
 
 stopifnot(all(is.na(coverage$error)))

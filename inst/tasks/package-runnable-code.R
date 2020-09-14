@@ -4,7 +4,7 @@ options(error = function() { traceback(3); q(status=1) })
 
 library(glue)
 library(purrr)
-library(rapr)
+library(runr)
 library(readr)
 library(tibble)
 
@@ -21,6 +21,13 @@ package_path <- args[1]
 package <- basename(package_path)
 
 files <- extract_package_code(package, package_path, types="all", output_dir=".")
+
+for (f in names(files)) {
+  if (length(files[[f]]) == 0) {
+    files[[f]] <- NULL
+  }
+}
+
 df <- imap_dfr(files, ~tibble(path=.x, type=.y))
 
 write_csv(df, OUTPUT_FILE)

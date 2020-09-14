@@ -6,7 +6,7 @@
 #'
 read_parallel_log <- function(path) {
   log_file <- if (is_dir(path)) {
-    path(path, "parallel.log")
+    file.path(path, "parallel.log")
   } else {
     path
   }

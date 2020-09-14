@@ -2,9 +2,9 @@
 
 # NOTE: this file is used for coverage, should not have
 # any dependencies except for base R with the exception
-# of rapr
+# of runr
 
-library(rapr)
+library(runr)
 
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) != 2) {
@@ -29,14 +29,8 @@ runnable_code_file <- file.path(runnable_code_path, "runnable-code.csv")
 
 cat("Lib paths: ", paste0(.libPaths(), collapse=":"), "\n")
 Sys.setenv(RAPR_CWD=getwd())
+Sys.setenv(RUNR_CWD=getwd())
 
-df <- local({
-  rapr::run_all(
-    package,
-    runnable_code_file,
-    run_before=getOption("rapr.run_before"),
-    run_after=getOption("rapr.run_after")
-  )
-})
+df <- runr::run_all(runnable_code_path, quiet=FALSE)
 
 write.csv(df, "run.csv", row.names=FALSE)

@@ -13,13 +13,15 @@ cloc <- function(path, cloc_bin="cloc") {
   }
 }
 
+# from: https://stackoverflow.com/a/15373917
 #' @export
 current_script <- function() {
-  cmdArgs <- commandArgs(trailingOnly = FALSE)
-  match <- grep("--file=", cmdArgs)
+  args <- commandArgs(trailingOnly = FALSE)
+  arg_to_match <- "^--file="
+  match <- grep(arg_to_match, args)
   if (length(match) > 0) {
     # in Rscript
-    normalizePath(sub(needle, "", cmdArgs[match]))
+    normalizePath(sub(arg_to_match, "", args[match]))
   } else {
     # in source
     file <- sys.frames()[[1]]$ofile
@@ -29,4 +31,11 @@ current_script <- function() {
       NULL
     }
   }
+}
+
+#' @importFrom codetools findGlobals
+#' @export
+is_s3_dispatch_method <- function(fun) {
+  globals <- codetools::findGlobals(fun, merge = FALSE)$functions
+  any(globals == "UseMethod" | globals == "NextMethod")
 }

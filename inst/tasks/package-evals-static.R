@@ -7,14 +7,14 @@ library(readr)
 library(tibble)
 library(withr)
 
-library(rapr)
+library(runr)
 
-OUTPUT_FILE <- "package-asserts.csv"
+OUTPUT_FILE <- "package-evals.csv"
 FUNCTIONS <- c(
-  "base:::stopifnot",
-  "assertthat:::assert_that",
-  "assertthat:::see_if",
-  "assertthat:::validate_that"
+  "base:::eval",
+  "base:::eval.parent",
+  "base:::evalq",
+  "base:::local"
 )
 
 make_row <- function(call, fun_name) {
@@ -23,15 +23,16 @@ make_row <- function(call, fun_name) {
   }
 
   lst <- as.list(call)
-  assert <- lst[[1L]]
-  assert <- if (is.call(assert)) {
-    if (length(assert) == 3) {
-      as.character(assert)[3]
+
+  call_fun_name <- lst[[1L]]
+  call_fun_name <- if (is.call(call_fun_name)) {
+    if (length(call_fun_name) == 3) {
+      as.character(call_fun_name)[3]
     } else {
-      format(assert)
+      format(call_fun_name)
     }
   } else {
-    as.character(assert)
+    as.character(call_fun_name)
   }
   args <- paste(map_chr(lst[-1L], deparse_arg), collapse=", ")
 
@@ -51,7 +52,7 @@ make_row <- function(call, fun_name) {
     if (is.null(file)) file <- NA
   }
 
-  tibble(fun_name, file, line1, col1, line2, col2, assert, args)
+  tibble(fun_name, file, line1, col1, line2, col2, call_fun_name, args)
 }
 
 make_rows <- function(calls, fun_name) {
@@ -77,9 +78,9 @@ ns <- as.list(getNamespace(package))
 
 funs <- keep(ns, is.function)
 
-checks <- imap(funs, process_fun) %>% discard(~is.null(.) || length(.) == 0)
+calls <- imap(funs, process_fun) %>% discard(~is.null(.) || length(.) == 0)
 
-df <- imap_dfr(checks, make_rows)
+df <- imap_dfr(calls, make_rows)
 
 if (nrow(df) > 0) {
   write_csv(df, OUTPUT_FILE)
