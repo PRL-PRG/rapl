@@ -25,6 +25,9 @@ export RUN_DIR="$R_PROJECT_BASE_DIR/run"
 
 export PATH="$R_BIN_DIR:$PATH"
 
+export R_ENABLE_JIT=0
+export R_COMPILE_PKGS=0
+export R_DISABLE_BYTECODE=1
 export OMP_NUM_THREADS=1
 
 if [ -z "$DISPLAY" ]; then
