@@ -1,6 +1,10 @@
 # -*- mode: sh; -*-
 source "$(dirname "$(readlink -f "$0")")/prl-env"
 
+export R_ENABLE_JIT=0
+export R_COMPILE_PKGS=0
+export R_DISABLE_BYTECODE=1
+
 export R_BASE_DIR=$R_PROJECT_BASE_DIR/R-dyntrace
 export R_BIN_DIR=$R_BASE_DIR/bin
 export R_BIN=$R_BIN_DIR/R

@@ -25,13 +25,16 @@ wrap <- function(package, file, type, body) {
 wrap_files <- Vectorize(function(package, file, type) {
     dir <- dirname(file)
 
+    # poor man's testthat detection
+    file_lower < - tolower(file)
     if (type == "tests" &&
-          (endsWith(tolower(file), "tests/testthat.r") ||
-             endsWith(tolower(file), "tests/run-all.r")) &&
+          (endsWith(file_lower, "tests/testthat.r") ||
+             endsWith(file_lower, "tests/test-all.r") ||
+             endsWith(file_lower, "tests/run-all.r")) &&
           dir.exists(file.path(dir, "testthat"))) {
       tt_dir <- file.path(dir, "testthat")
-      tt_helpers <- list.files(tt_dir, pattern="helper-.*\\.[rR]$", full.names=T, recursive=T)
-      tt_tests <- list.files(tt_dir, pattern="test-.*\\.[rR]$", full.names=T, recursive=T)
+      tt_helpers <- list.files(tt_dir, pattern="helper.*\\.[rR]$", full.names=T, recursive=T)
+      tt_tests <- list.files(tt_dir, pattern="test.*\\.[rR]$", full.names=T, recursive=T)
       tt_files <- c(tt_helpers, tt_tests)
 
       wrap_files(package, tt_files, rep("tests", length(tt_files)))

@@ -124,7 +124,7 @@ run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE) {
 #' @importFrom stringr str_detect
 #' @export
 run_all <- function(path, output_dir=getwd(), run_dir=tempfile(),
-                    wrap_code_fun=NULL, clean=TRUE, quiet=TRUE) {
+                    wrap_code_fun=NULL, clean=TRUE, quiet=TRUE, skip_if_out_exists=TRUE) {
   stopifnot(dir.exists(path))
   stopifnot(dir.exists(output_dir))
 
@@ -175,13 +175,17 @@ run_all <- function(path, output_dir=getwd(), run_dir=tempfile(),
         writeChar(code, file)
       }
 
-      res <- run_one(file, out_file, cwd=TRUE, quiet=TRUE)
-
-      if (!quiet) {
-        if (res$exitval == 0) {
-          cat("done (in", res$time, ")\n")
-        } else {
-          cat("failed (exitval", res$exitval, ")\n")
+      if (skip_if_out_exists && file.exists(out_file)) {
+        if (!quiet) cat("already done\n")
+        res <- data.frame(exitval=0, time=0)
+      } else {
+        res <- run_one(file, out_file, cwd=TRUE, quiet=TRUE)
+        if (!quiet) {
+          if (res$exitval == 0) {
+            cat("done (in", res$time, ")\n")
+          } else {
+            cat("failed (exitval", res$exitval, ")\n")
+          }
         }
       }
 

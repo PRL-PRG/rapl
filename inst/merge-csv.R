@@ -28,7 +28,7 @@ for (file in csv_files) {
     unlink(merged_csv_file)
   }
 
-  files <- list.files(run_dir, pattern=file, full.name=TRUE, recursive=TRUE)
+  files <- list.files(run_dir, pattern=paste0(file, "$"), full.name=TRUE, recursive=TRUE)
   df <- read_files(
     dirname(files),
     files,
