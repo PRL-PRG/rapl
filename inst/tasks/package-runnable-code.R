@@ -2,15 +2,9 @@
 
 options(error = function() { traceback(3); q(status=1) })
 
-library(glue)
-library(purrr)
 library(runr)
-library(readr)
-library(tibble)
 
 OUTPUT_FILE <- "runnable-code.csv"
-METADATA_FILE <- "runnable-code-metadata.csv"
-CODE_FILE <- "run-all.R"
 
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) != 1) {
@@ -20,18 +14,12 @@ if (length(args) != 1) {
 package_path <- args[1]
 package <- basename(package_path)
 
-files <- extract_package_code(package, package_path, types="all", output_dir=".")
+files <- runr::extract_package_code(
+  package,
+  package_path,
+  types="all",
+  output_dir=".",
+  compute_sloc=TRUE
+)
 
-for (f in names(files)) {
-  if (length(files[[f]]) == 0) {
-    files[[f]] <- NULL
-  }
-}
-
-df <- imap_dfr(files, ~tibble(path=.x, type=.y))
-
-write_csv(df, OUTPUT_FILE)
-
-df_sloc <- map_dfr(c("examples", "tests", "vignettes"), ~cloc(.))
-write_csv(df_sloc, METADATA_FILE)
-
+write.csv(df, OUTPUT_FILE, row.names=FALSE)
