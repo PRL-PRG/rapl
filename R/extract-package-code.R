@@ -44,9 +44,9 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     files
   })
 
-  extracted_file <- purrr::discard(
+  extracted_files <- purrr::discard(
     extracted_files,
-    ~length(.) == 1 && is.null(.[[1]])
+    ~length(.) == 0
   )
 
   df <- purrr::imap_dfr(extracted_files, ~data.frame(file=.x, type=.y))
