@@ -55,7 +55,6 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     sloc <- cloc(output_dir, by_file=TRUE, r_only=TRUE)
     sloc <- dplyr::rename(sloc, file=filename)
 
-
     tt_driver <- purrr::keep(sloc$file, is_testthat_driver)
     if (length(tt_driver) == 1) {
       sloc <- dplyr::mutate(
@@ -83,8 +82,8 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     df <- dplyr::mutate(
       df,
       blank=ifelse(is.na(blank), 0, blank),
-      comment=ifelse(is.na(comment), 0, blank),
-      code=ifelse(is.na(code), 0, blank)
+      comment=ifelse(is.na(comment), 0, comment),
+      code=ifelse(is.na(code), 0, code)
     )
   }
 
