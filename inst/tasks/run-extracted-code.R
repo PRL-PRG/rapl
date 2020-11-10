@@ -5,10 +5,11 @@
 # of runr
 
 library(runr)
+library(stringr)
 
 args <- commandArgs(trailingOnly=TRUE)
-if (length(args) != 2) {
-  stop("Missing a path to the package source and the path to runnable-code.csv")
+if (length(args) < 2) {
+  stop("Usage: <package-src-path> <runnable-code-path> [<file-to-run>]")
 }
 
 package_path <- args[1]
@@ -25,12 +26,20 @@ if (!require(package, character.only=TRUE)) {
 }
 
 runnable_code_path <- args[2]
-runnable_code_file <- file.path(runnable_code_path, "runnable-code.csv")
 
-cat("Lib paths: ", paste0(.libPaths(), collapse=":"), "\n")
+filter <- NULL
+run_dir <- tempfile()
+run_file <- "run.csv"
+
+if (length(args) == 3) {
+  filter <- str_c(fixed(args[3]), "$")
+  run_dir <- runnable_code_path
+  run_file <- str_c("run-", args[3], ".csv")
+}
+
 Sys.setenv(RAPR_CWD=getwd())
 Sys.setenv(RUNR_CWD=getwd())
 
-df <- runr::run_all(runnable_code_path, quiet=FALSE)
+df <- runr::run_all(runnable_code_path, run_dir=run_dir, filter=filter, quiet=FALSE)
 
-write.csv(df, "run.csv", row.names=FALSE)
+write.csv(df, run_file, row.names=FALSE)

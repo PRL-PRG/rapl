@@ -123,10 +123,14 @@ run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE) {
 
 #' @importFrom stringr str_detect
 #' @export
-run_all <- function(path, output_dir=getwd(), run_dir=tempfile(),
+run_all <- function(path, output_dir=getwd(), run_dir=tempfile(), filter=NULL,
                     wrap_code_fun=NULL, clean=TRUE, quiet=TRUE, skip_if_out_exists=TRUE) {
   stopifnot(dir.exists(path))
   stopifnot(dir.exists(output_dir))
+
+  path <- normalizePath(path, mustWork=TRUE)
+  output_dir <- normalizePath(output_dir, mustWork=TRUE)
+  run_dir <- normalizePath(run_dir)
 
   result <- data.frame(
     file=character(0),
@@ -136,28 +140,37 @@ run_all <- function(path, output_dir=getwd(), run_dir=tempfile(),
     error=character(0)
   )
 
-  if (dir.exists(run_dir)) unlink(run_dir, recursive=TRUE)
-  dir.create(run_dir)
-  if (clean) {
-    on.exit({
-      if (!quiet) cat("Removing running dir", run_dir, "\n")
-      unlink(run_dir, recursive=TRUE)
-    })
-  }
-
   files <- Sys.glob(file.path(path, "*"))
   if (length(files) == 0) {
     return(result)
   }
 
-  if (!quiet) cat("Copying files from:", path, "to:", run_dir, "...\n")
-  ret <- file.copy(files, run_dir, recursive=TRUE)
-  if (!all(ret)) stop("Unable to copy:", files[!ret])
+  if (path != run_dir) {
+    if (dir.exists(run_dir)) unlink(run_dir, recursive=TRUE)
+    dir.create(run_dir)
+    if (clean) {
+      on.exit({
+        if (!quiet) cat("Removing running dir", run_dir, "\n")
+        unlink(run_dir, recursive=TRUE)
+      })
+    }
+
+    if (!quiet) cat("Copying files from:", path, "to:", run_dir, "...\n")
+    ret <- file.copy(files, run_dir, recursive=TRUE)
+    if (!all(ret)) stop("Unable to copy:", files[!ret])
+  }
 
   files <- list.files(run_dir, pattern=".*\\.[rR]$", full.names=TRUE, recursive=TRUE)
+
   # we need to exclude the individual testthat tests as they will be run by the
   # testthat driver
   files <- files[!str_detect(files, "/testthat/")]
+
+  # apply filter
+  if (!is.null(filter)) {
+    files <- files[str_detect(basename(files), filter)]
+  }
+
   if (!quiet) cat("Running", length(files), "R files ...\n")
 
   rows <- lapply(files, function(file) {
