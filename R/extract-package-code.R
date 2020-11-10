@@ -1,8 +1,9 @@
 #' @param wrap_fun either a NULL or a function(package, file, type, body) which
 #'   will be called for each extracted file and allows one to alter the file
 #'   content.
-#' @importFrom dplyr select mutate filter vars bind_rows rename
+#' @importFrom dplyr select mutate filter vars bind_rows rename anti_join left_join ends_with `%>%`
 #' @importFrom purrr keep imap_dfr
+#' @importFrom stringr str_replace
 #' @export
 extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
                                  types=c("examples", "tests", "vignettes", "all"),
@@ -12,6 +13,11 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
   stopifnot(is.character(pkg) && length(pkg) == 1)
   stopifnot(dir.exists(pkg_dir))
   stopifnot(is.null(filter) || is.character(filter))
+
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive=TRUE)
+  }
+  output_dir <- normalizePath(output_dir, mustWork=TRUE)
 
   if ("all" %in% types) {
     types <- c("examples", "tests", "vignettes")
@@ -52,43 +58,72 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
   df <- purrr::imap_dfr(extracted_files, ~data.frame(file=.x, type=.y))
 
   if (compute_sloc) {
-    sloc <- cloc(output_dir, by_file=TRUE, r_only=TRUE)
-    sloc <- dplyr::rename(sloc, file=filename)
+    sloc_all <- cloc(output_dir, by_file=TRUE, r_only=TRUE) %>%
+      rename(file=filename)
 
-    tt_driver <- purrr::keep(sloc$file, is_testthat_driver)
-    if (length(tt_driver) == 1) {
-      sloc <- dplyr::mutate(
-        sloc,
-        testthat=startsWith(file, "./tests/testthat/")
+    sloc <- left_join(df, sloc_all, by="file") %>%
+      mutate(
+        blank=ifelse(is.na(blank), 0, blank),
+        comment=ifelse(is.na(comment), 0, comment),
+        code=ifelse(is.na(code), 0, code)
       )
 
-      tt_sloc <- dplyr::filter(sloc, testthat)
+    sloc_testthat <-
+      filter(sloc_all, str_detect(file, "tests/testthat/test[-]?.*\\.[rR]$")) %>%
+      mutate(
+        test_name=str_replace(file, ".*/tests/testthat/test[-]?(.*)\\.[rR]$", "\\1")
+      )
 
-      sloc <- dplyr::bind_rows(
-        dplyr::filter(sloc, !testthat, file != tt_driver),
-        data.frame(
-          language="R",
-          file=tt_driver,
-          blank=sum(tt_sloc$blank),
-          comment=sum(tt_sloc$comment),
-          code=sum(tt_sloc$code)
+    df <- if (nrow(sloc_testthat) > 0) {
+      sloc_tests <-
+        filter(sloc, type=="tests") %>%
+        mutate(
+          test_driver=sapply(file, is_testthat_driver),
+          test_name=str_replace(file, ".*/tests/testthat-drv-(.*)\\.[rR]$", "\\1")
         )
+
+      sloc_tests_merged <-
+        left_join(
+          filter(sloc_tests, test_driver),
+          sloc_testthat %>% select(test_name, blank, comment, code),
+          by="test_name"
+        ) %>%
+        mutate(
+          blank=ifelse(is.na(blank.y), blank.x, blank.y),
+          comment=ifelse(is.na(comment.y), comment.x, comment.y),
+          code=ifelse(is.na(code.y), code.x, code.y)
+        ) %>%
+        select(-test_name, -test_driver, -ends_with(".x"), -ends_with(".y"))
+
+      bind_rows(
+        sloc_tests_merged,
+        anti_join(sloc, sloc_tests, by="file")
       )
-
-      sloc <- dplyr::select(sloc, -testthat, -language)
+    } else {
+      sloc
     }
-
-    df <- dplyr::left_join(df, sloc, by="file")
-    df <- dplyr::mutate(
-      df,
-      blank=ifelse(is.na(blank), 0, blank),
-      comment=ifelse(is.na(comment), 0, comment),
-      code=ifelse(is.na(code), 0, code)
-    )
   }
 
   if (!is.null(wrap_fun)) {
-    wrap_files(pkg, df$file, df$type, wrap_fun, quiet)
+    other <- filter(df, !is_testthat_driver(file))
+    other_files <- other$file
+    other_types <- other$type
+    test_files <- c()
+    test_types <- c()
+
+    if (nrow(other) != nrow(df)) {
+      # we have to explicitly wrap all the testthat tests and helpers
+      tt_dir <- file.path(output_dir, "tests", "testthat")
+      tt_helpers <- list.files(tt_dir, pattern="helper.*\\.[rR]$", full.names=T)
+      tt_tests <- list.files(tt_dir, pattern="test.*\\.[rR]$", full.names=T)
+      test_files <- c(tt_helpers, tt_tests)
+      test_types <- rep("tests", length(test_files))
+    }
+
+    files <- c(other_files, test_files)
+    types <- c(other_types, test_types)
+
+    wrap_files(pkg, files, types, wrap_fun, quiet)
   }
 
   df
@@ -145,7 +180,34 @@ extract_package_tests <- function(pkg, pkg_dir, output_dir) {
   tests <- tests[!dir.exists(tests)]
   tests <- tests[grepl("\\.[rR]$", tests)]
 
+  testthat_drivers <- purrr::keep(tests, is_testthat_driver)
+  if (length(testthat_drivers) > 0) {
+    file.remove(testthat_drivers)
+    expand_testthat_tests(pkg, output_dir)
+    tests <- list.files(output_dir, pattern="\\.[rR]$", full.names=TRUE, recursive=FALSE)
+  }
+
   tests
+}
+
+#' @importFrom stringr str_glue str_replace
+#' @importFrom testthat find_test_scripts
+expand_testthat_tests <- function(pkg_name, test_dir) {
+  # this is a constant - also used in test_check
+  testthat_dir <- file.path(test_dir, "testthat")
+  test_files <- testthat::find_test_scripts(testthat_dir)
+  for (file in test_files) {
+    test_name <- basename(file)
+    test_name <- str_replace(test_name, "^test[-]?(.*)\\.[rR]$", "\\1")
+    driver_file <- file.path(test_dir, paste0("testthat-drv-", test_name, ".R"))
+    code <- str_glue(
+      "library({pkg_name})",
+      "library(testthat)",
+      "test_check('{pkg_name}', filter='{test_name}')",
+      .sep = "\n"
+    )
+    writeLines(code, driver_file)
+  }
 }
 
 #' @importFrom tools pkgVignettes checkVignettes
@@ -183,36 +245,25 @@ extract_package_vignettes <- function(pkg, pkg_dir, output_dir) {
 }
 
 is_testthat_driver <- function(file) {
-    dir <- dirname(file)
     file_lower <- tolower(file)
-    dir.exists(file.path(dir, "testthat")) &&
-      (endsWith(file_lower, "tests/testthat.r") ||
-         endsWith(file_lower, "tests/test-all.r") ||
-         endsWith(file_lower, "tests/run-all.r"))
+    dir.exists(file.path(dirname(file), "testthat")) &&
+      (str_detect(file_lower, "testthat-drv-.*\\.r$") ||
+         endsWith(file_lower, "testthat.r") ||
+         endsWith(file_lower, "test-all.r") ||
+         endsWith(file_lower, "run-all.r"))
 }
 
 wrap_files <- Vectorize(function(package, file, type, wrap_fun, quiet) {
-    # poor man's testthat detection
-    file_lower <- tolower(file)
-    if (type == "tests" && is_testthat_driver(file)) {
-      tt_dir <- file.path(dirname(file), "testthat")
-      tt_helpers <- list.files(tt_dir, pattern="helper.*\\.[rR]$", full.names=T, recursive=T)
-      tt_tests <- list.files(tt_dir, pattern="test.*\\.[rR]$", full.names=T, recursive=T)
-      tt_files <- c(tt_helpers, tt_tests)
+  if (!quiet) {
+    message("- updating ", file, " (", type, ")")
+  }
 
-      wrap_files(package, tt_files, rep("tests", length(tt_files)), wrap_fun, quiet)
-    } else {
-      if (!quiet) {
-        message("- updating ", file, " (", type, ")")
-      }
-
-      body <- readLines(file)
-      new_body <- wrap_fun(package, file, type, body)
-      tryCatch({
-        parse(text=new_body)
-      }, error=function(e) {
-        warning("E unable to parse wrapped file", file, ": ", e$message)
-      })
-      writeLines(new_body, file)
-    }
+  # TODO share with run_all
+  tryCatch({
+    body <- readChar(file, file.info(file)$size)
+    new_body <- wrap_fun(package, file, type, body)
+    writeLines(new_body, file)
+  }, error=function(e) {
+    warning("E unable to parse wrapped file", file, ": ", e$message)
+  })
 }, vectorize.args=c("file", "type"))
