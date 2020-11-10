@@ -22,4 +22,4 @@ files <- runr::extract_package_code(
   compute_sloc=TRUE
 )
 
-write.csv(df, OUTPUT_FILE, row.names=FALSE)
+write.csv(files, OUTPUT_FILE, row.names=FALSE)
