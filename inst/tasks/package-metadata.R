@@ -1,7 +1,5 @@
 #!/usr/bin/env Rscript
 
-suppressPackageStartupMessages(library(devtools))
-suppressPackageStartupMessages(library(purrr))
 suppressPackageStartupMessages(library(runr))
 suppressPackageStartupMessages(library(stringr))
 
@@ -12,17 +10,26 @@ FUNCTIONS_FILE <- "functions.csv"
 S3_CLASSES_FILE <- "s3-classes.csv"
 
 cmd_metadata <- function(path) {
-  pkg <- devtools::as.package(path)
-  package_name <- pkg$package
-  version <- pkg$version
-  title <- pkg$title
+  package_name <- basename(path)
+  pkg <- packageDescription(package_name)
+  loadable <- tryCatch({
+    require(package_name, quietly=TRUE, warn.conflicts=FALSE, character.only=TRUE)
+  }, error=function(e) {
+    FALSE
+  })
 
   tryCatch({
     size <- system2("du", c("-sb", path), stdout = TRUE)
     size <- stringr::str_replace(size, "(\\d+).*", "\\1")
     size <- as.double(size)
 
-    df <- data.frame(name=package_name, version, title, size)
+    df <- data.frame(
+      name=package_name,
+      version=pkg$Version,
+      title=pkg$Title,
+      size,
+      loadable
+    )
 
     write.csv(df, METADATA_FILE, row.names=FALSE)
   }, error=function(e) {
@@ -34,7 +41,8 @@ cmd_sloc <- function(path) {
   paths <- file.path(path, c("R", "src", "inst", "tests", "vignettes"))
   paths <- paths[dir.exists(paths)]
 
-  df <- purrr::map_dfr(paths, cloc)
+  df_list <- lapply(paths, cloc)
+  df <- do.call(rbind, df_list)
   df$path <- basename(df$path)
 
   write.csv(df, SLOC_FILE, row.names=FALSE)
@@ -63,7 +71,7 @@ cmd_revdeps <- function(path) {
 
   df <- data.frame(revdep=revdeps)
 
-  write.csv(df, REVDEPS_FILE)
+  write.csv(df, REVDEPS_FILE, row.names=FALSE)
 }
 
 is_s3 <- function(fun) {
@@ -143,8 +151,14 @@ if (length(args) != 1) {
 
 package_path <- args[1]
 
-cmd_metadata(package_path)
-cmd_sloc(package_path)
-cmd_revdeps(package_path)
-cmd_functions(package_path)
-cmd_s3_classes(package_path)
+cmds <- list(
+  cmd_metadata,
+  cmd_sloc,
+  cmd_revdeps,
+  cmd_functions,
+  cmd_s3_classes
+)
+
+for (cmd in cmds) {
+  tryCatch(cmd(package_path), error=function(e) NULL)
+}
