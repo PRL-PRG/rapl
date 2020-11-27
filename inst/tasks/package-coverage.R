@@ -12,7 +12,7 @@ library(tibble)
 COVERAGE_FILE <- "coverage.csv"
 COVERAGE_DETAILS_FILE <- "coverage-details-{by}.csv"
 COVERAGE_BY <- c("line", "expression")
-COVERAGE_TYPES <- Sys.getenv("RUNR_PACKAGE_COVERAGE_TYPE", "all,examples,tests,vignettes")
+ALL_TYPES <- eval(formals(package_coverage)$type)
 
 do_coverage <- function(type) {
   pc <- package_coverage(path, type=type, quiet=FALSE)
@@ -41,12 +41,26 @@ do_coverage_checked <- function(type) {
 }
 
 args <- commandArgs(trailingOnly=TRUE)
-if (length(args) != 1) {
-  stop("Missing a path to the package source")
+if (length(args) < 2) {
+  stop("Usage: <path-to-package-src-dir> <--all|--tests|--examples|--vignettes>")
 }
 
 path <- args[1]
+types <- c()
 
+for (arg in args[2:length(args)]) {
+  if (startsWith(arg, "--")) {
+    val <- substr(arg, 3, nchar(arg))
+    if (val %in% ALL_TYPES) types <- append(types, val)
+    else stop("unknown arg: ", arg)
+  } else {
+    stop("unknown arg: ", arg)
+  }
+}
+
+if (length(types) == 0) {
+  stop("Missing types arguments (e.g. --all, --tests, ...)")
+}
 
 for (by in COVERAGE_BY) {
   file <- str_glue(COVERAGE_DETAILS_FILE)
@@ -54,8 +68,6 @@ for (by in COVERAGE_BY) {
     file_delete(file)
   }
 }
-
-types <- map_chr(str_split(COVERAGE_TYPES, ",")[[1]], ~trimws(., "both"))
 
 Sys.setenv(
   R_TESTS="",
