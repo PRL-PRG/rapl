@@ -68,7 +68,7 @@ while (( "$#" )); do
             exit 0
             ;;
         -v[v]*|--verbose)
-            v=$(echo "$1" | awk -F, '{print NF-1}')
+            v=$(echo "$1" | awk -Fv '{print NF-1}')
             ((VERBOSE=VERBOSE+v))
             shift
             ;;
