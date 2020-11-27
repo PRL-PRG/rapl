@@ -74,25 +74,10 @@ while (( "$#" )); do
             ;;
         -e|--exec)
             parse_arg EXEC $2
-            if [[ "$EXEC" == *"/"* ]]; then
-              # it is not in PATH, use fully qualified path
-              EXEC=$(realpath "$EXEC")
-            fi
             shift 2
             ;;
         -f|--file)
             parse_arg INPUT_FILE $2
-            INPUT_FILE=$(realpath "$INPUT_FILE")
-            if [[ ! -f "$INPUT_FILE" ]]; then
-              echo "$INPUT_FILE: no such file"
-              exit 1
-            fi
-            if [[ "$INPUT_FILE" == *csv ]]; then
-                PARALLEL_EXTRA_ARGS="$PARALLEL_EXTRA_ARGS --csv"
-            fi
-            if [[ "$INPUT_FILE" != "-" ]]; then
-                PARALLEL_EXTRA_ARGS="$PARALLEL_EXTRA_ARGS -a $INPUT_FILE"
-            fi
             shift 2
             ;;
         -j|--jobs)
@@ -126,9 +111,32 @@ if [[ $VERBOSE -ge 2 ]]; then
     set -o xtrace
 fi
 
-[[ -d "$OUTPUT_DIR" ]] || mkdir -p "$OUTPUT_DIR"
-OUTPUT_DIR=$(realpath "$OUTPUT_DIR")
+if [[ "$EXEC" == *"/"* ]]; then
+  # it is not in PATH, use fully qualified path
+  EXEC=$(realpath "$EXEC")
+fi
 
+if [[ ! -f "$INPUT_FILE" ]]; then
+  echo "$INPUT_FILE: no such file"
+  exit 1
+fi
+INPUT_FILE=$(realpath "$INPUT_FILE")
+
+if [[ "$INPUT_FILE" == *csv ]]; then
+  PARALLEL_EXTRA_ARGS="$PARALLEL_EXTRA_ARGS --csv"
+fi
+if [[ "$INPUT_FILE" != "-" ]]; then
+  PARALLEL_EXTRA_ARGS="$PARALLEL_EXTRA_ARGS -a $INPUT_FILE"
+fi
+
+if [[ -d "$OUTPUT_DIR" ]]; then
+  echo "$OUTPUT_DIR already exists!"
+  exit 1
+fi
+
+[[ -d "$OUTPUT_DIR" ]] || mkdir -p "$OUTPUT_DIR"
+
+OUTPUT_DIR=$(realpath "$OUTPUT_DIR")
 PARALLEL_LOG="$OUTPUT_DIR/parallel.log"
 RESULT_FILE="$OUTPUT_DIR/parallel.csv"
 JOBS_FILE="$OUTPUT_DIR/jobs.txt"
