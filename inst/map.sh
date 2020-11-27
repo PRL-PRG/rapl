@@ -2,6 +2,7 @@
 
 set -e
 
+CMD="$0 $@"
 TIMEOUT=${RUNR_TIMEOUT:-30m}
 JOBS=${RUNR_JOBS:-1}
 OUTPUT_DIR=${RUNR_OUTPUT_DIR:-run}
@@ -131,19 +132,13 @@ OUTPUT_DIR=$(realpath "$OUTPUT_DIR")
 PARALLEL_LOG="$OUTPUT_DIR/parallel.log"
 RESULT_FILE="$OUTPUT_DIR/parallel.csv"
 JOBS_FILE="$OUTPUT_DIR/jobs.txt"
+MAP_CMD_FILE="$OUTPUT_DIR/map-cmd.txt"
 TASK_NAME=$(basename "$EXEC")
-
-# backup parallel log
-if [ -f $PARALLEL_LOG ]; then
-    cnt=$(ls -1 "$PARALLEL_LOG"* | wc -l)
-    cnt=$(( $cnt + 1 ))
-    cp "$PARALLEL_LOG" "$PARALLEL_LOG.$cnt"
-fi
 
 echo "$JOBS" > "$JOBS_FILE"
 
-if [[ $VERBOSE -ge 1 ]]; then
-cat <<EOF
+DEBUG_MSG=$(cat <<-EOM
+CMD:     $CMD
 INPUT:   $INPUT_FILE
 OUTPUT:  $OUTPUT_DIR
 TIMEOUT: $TIMEOUT
@@ -155,8 +150,12 @@ additional exec args: $EXEC_EXTRA_ARGS"
 log file: $PARALLEL_LOG"
 result file: $RESULT_FILE"
 job file: $JOBS_FILE"
-EOF
-fi
+EOM
+)
+
+echo "$DEBUG_MSG" > $MAP_CMD_FILE
+
+[[ $VERBOSE -ge 1 ]] && echo "$DEBUG_MSG"
 
 parallel \
   --bar \
