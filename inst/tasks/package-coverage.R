@@ -88,11 +88,11 @@ run <- function(path, options) {
 option_list <- list(
   make_option(
     c("-q", "--quiet"), action="store_true", default=FALSE,
-    dest="quiet", help="Print extra output [default]"
+    dest="quiet", help="Do not print extra output"
   ),
   make_option(
     c("--no-clean"), action="store_false", default=TRUE,
-    dest="clean", help="Clean the intermediate output"
+    dest="clean", help="Do not clean the intermediate output"
   ),
   make_option(
     c("--type"), default="all,examples,tests,vignettes",
