@@ -126,7 +126,10 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     wrap_files(pkg, files, types, wrap_fun, quiet)
   }
 
-  df
+  df <- mutate(
+    df,
+    file=str_sub(file, nchar(output_dir)+2, nchar(file))
+  )
 }
 
 #' @importFrom tools Rd_db Rd2ex
