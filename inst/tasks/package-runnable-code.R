@@ -19,7 +19,8 @@ run <- function(path, options) {
     output_dir=getwd(),
     types=types,
     compute_sloc=options$sloc,
-    quiet=options$quiet
+    quiet=options$quiet,
+    wrap=options$wrap
   )
 
   write.csv(df, OUTPUT_FILE, row.names=FALSE)

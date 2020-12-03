@@ -1,13 +1,13 @@
-#' @param wrap_fun either a NULL or a function(package, file, type, body) which
+#' @param wrap either a NULL or filename of a function(package, file, type, body) which
 #'   will be called for each extracted file and allows one to alter the file
-#'   content.
+#'   content. If it is a file it case use the {body}, {package}, {type}, {file} placeholders.
 #' @importFrom dplyr select mutate filter vars bind_rows rename anti_join left_join ends_with `%>%`
 #' @importFrom purrr keep imap_dfr
 #' @importFrom stringr str_replace
 #' @export
 extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
                                  types=c("examples", "tests", "vignettes", "all"),
-                                 output_dir, wrap_fun=NULL, filter=NULL,
+                                 output_dir, wrap=NULL, filter=NULL,
                                  compute_sloc=FALSE, quiet=FALSE) {
 
   stopifnot(is.character(pkg) && length(pkg) == 1)
@@ -104,7 +104,7 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     }
   }
 
-  if (!is.null(wrap_fun)) {
+  if (!is.null(wrap)) {
     other <- filter(df, !is_testthat_driver(file))
     other_files <- other$file
     other_types <- other$type
@@ -123,6 +123,18 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     files <- c(other_files, test_files)
     types <- c(other_types, test_types)
 
+    wrap_fun <- if (is.function(wrap)) {
+      wrap
+    } else if (is.character(wrap) && length(wrap) == 1) {
+      template <- if (file.access(wrap, 4) == 0) {
+        readChar(wrap, file.info(wrap)$size)
+      } else {
+        stop(wrap, ": no such template file for wrapping")
+      }
+      wrap_using_template(template)
+    } else {
+      stop("Unsupported wrap argument: ", wrap)
+    }
     wrap_files(pkg, files, types, wrap_fun, quiet)
   }
 
@@ -247,13 +259,17 @@ extract_package_vignettes <- function(pkg, pkg_dir, output_dir) {
   vignettes
 }
 
-is_testthat_driver <- function(file) {
+is_testthat_driver <- Vectorize(function(file) {
     file_lower <- tolower(file)
     dir.exists(file.path(dirname(file), "testthat")) &&
       (str_detect(file_lower, "testthat-drv-.*\\.r$") ||
          endsWith(file_lower, "testthat.r") ||
          endsWith(file_lower, "test-all.r") ||
          endsWith(file_lower, "run-all.r"))
+})
+
+wrap_using_template <- function(template) {
+  function(package, file, type, body) str_glue(template)
 }
 
 wrap_files <- Vectorize(function(package, file, type, wrap_fun, quiet) {
