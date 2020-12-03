@@ -44,11 +44,16 @@ rcmd_batch_runner <- function(file, out_file, quiet=F) {
   )
 }
 
-run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE) {
+#' @export
+run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE, stats=TRUE) {
   stopifnot(file.exists(file))
-  stopifnot(dir.exists(dirname(out_file)))
 
-  # TODO insert code that will time the script
+  if (is.null(out_file)) {
+    out_file <- ""
+  } else {
+    stopifnot(dir.exists(dirname(out_file)))
+  }
+
   error <- as.character(NA)
   time <- as.double(NA)
 
@@ -101,24 +106,28 @@ run_one <- function(file, out_file, cwd=TRUE, quiet=TRUE) {
     )
   })
 
-  time <- NA
-  if (exitval == 0L) {
-    tryCatch({
-      tmp <- readLines(out_file)
-      if (tmp[length(tmp)-2] == "> proc.time()") {
-        x <- tmp[length(tmp)]
-        x <- strsplit(x, " ")[[1]]
-        x <- trimws(x, "both")
-        x <- x[x != ""]
-        x <- as.double(x)
-        time <- x[3]
-      }
-    }, error=function(e) {
-      warning("Unable to get timing from: ", out_file)
-    })
-  }
+  if (stats) {
+    time <- NA
+    if (exitval == 0L) {
+      tryCatch({
+        tmp <- readLines(out_file)
+        if (tmp[length(tmp)-2] == "> proc.time()") {
+          x <- tmp[length(tmp)]
+          x <- strsplit(x, " ")[[1]]
+          x <- trimws(x, "both")
+          x <- x[x != ""]
+          x <- as.double(x)
+          time <- x[3]
+        }
+      }, error=function(e) {
+        warning("Unable to get timing from: ", out_file)
+      })
+    }
 
-  data.frame(exitval, time)
+    data.frame(exitval, time)
+  } else {
+    data.frame(exitval)
+  }
 }
 
 #' @importFrom stringr str_detect

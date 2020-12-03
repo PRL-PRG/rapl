@@ -1,45 +1,54 @@
 #!/usr/bin/env Rscript
 
-# NOTE: this file is used for coverage, should not have
-# any dependencies except for base R with the exception
-# of runr
+options(error = function() { traceback(3); q(status=1) })
 
+library(optparse)
 library(runr)
 library(stringr)
 
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args) < 2) {
-  stop("Usage: <package-src-path> <runnable-code-path> [<file-to-run>]")
-}
+OUTPUT_FILE <- "run.csv"
 
-package_path <- args[1]
-if (!dir.exists(package_path)) {
-  stop(package_path, ": no such package path, (wd=", getwd(), ")")
-}
-
-package <- basename(package_path)
-if (!require(package, character.only=TRUE)) {
-  stop(
-    package,
-    ": no such package, (.libPaths=", paste0(.libPaths(), col=":"), ")"
-  )
-}
-
-runnable_code_path <- args[2]
-
-filter <- NULL
-run_dir <- tempfile()
-run_file <- "run.csv"
-
-if (length(args) == 3) {
-  filter <- str_c(fixed(args[3]), "$")
-  run_dir <- runnable_code_path
-  run_file <- str_c("run-", args[3], ".csv")
-}
-
-Sys.setenv(RAPR_CWD=getwd())
 Sys.setenv(RUNR_CWD=getwd())
 
-df <- runr::run_all(runnable_code_path, run_dir=run_dir, filter=filter, quiet=FALSE)
+run <- function(path, options) {
+  df <- run_all(
+    path,
+    quiet=options$quiet,
+    clean=options$clean,
+    skip_if_out_exists=options$skip
+  )
 
-write.csv(df, run_file, row.names=FALSE)
+  write.csv(df, OUTPUT_FILE, row.names=FALSE)
+}
+
+option_list <- list(
+  make_option(
+    c("-q", "--quiet"), action="store_true", default=FALSE,
+    dest="quiet", help="Do not print extra output"
+  ),
+  make_option(
+    "--no-clean", action="store_false", default=TRUE,
+    dest="clean", help="Do not clean the intermediate output"
+  ),
+  make_option(
+    "--force", action="store_false", default=TRUE,
+    dest="skip", help="For run on files that have already been run"
+  )
+)
+
+opt_parser <- OptionParser(option_list=option_list)
+opts <- parse_args(opt_parser, positional_arguments=1)
+
+if (length(opts$args) != 1) {
+  message("Missing path to a package source")
+  q(1, save="no")
+}
+
+package_path <- opts$args
+
+if (!dir.exists(package_path)) {
+  message(package_path, ": no such directory")
+  q(1, save="no")
+}
+
+run(package_path, opts$options)
