@@ -34,6 +34,7 @@ Options:
                         the input file followed by all <extra args>
   -w | --workdir DIR    a subdirectory of output which will be used as working directory for a job
                         (default output/$DEF_WORK_DIR) all input parameters separated by '/'
+  --no-exec-wrapper     disable exec wrapper
 
 
   any other optionss will be passed to GNU parallel arguments
@@ -98,6 +99,10 @@ while (( "$#" )); do
             parse_arg WORK_DIR $2
             shift 2
             ;;
+        --no-exec-wrapper)
+            EXEC_WRAPPER=""
+            shift
+            ;;
         --)
             PARSING_EXEC_EXTRA_ARGS=1
             shift
@@ -118,13 +123,11 @@ if [[ $VERBOSE -ge 2 ]]; then
 fi
 
 
-if [[ "$EXEC_WRAPPER" != "-" ]]; then
+if [[ -n "$EXEC_WRAPPER" ]]; then
   if [[ ! -x "$EXEC_WRAPPER" ]]; then
     echo "$EXEC_WRAPPER: exec wrapper is missing" >&2
     exit 1
   fi
-else
-  EXEC_WRAPPER=""
 fi
 
 if [[ "$EXEC" == *"/"* ]]; then
