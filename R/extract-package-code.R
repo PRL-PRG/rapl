@@ -160,7 +160,8 @@ extract_package_examples <- function(pkg, pkg_dir, output_dir) {
 
   examples <- sapply(files, function(x) {
     f <- file.path(output_dir, paste0(basename(x), ".R"))
-    tools::Rd2ex(db[[x]], f, defines=NULL)
+    tools::Rd2ex(db[[x]], f, defines=NULL,
+                 commentDontrun=TRUE, commentDonttest=TRUE)
 
     if (!file.exists(f)) {
       message("Rd file `", x, "' does not contain any code to be run")
