@@ -1,21 +1,51 @@
 context("impute_srcref")
 
-expect_srcref <- function(x, ref) {
-  x_ref <- attr(x, "srcref")
+## test_that("nested function calls", {
+##   f <- function() {
+##     tryCatch(g())
+##   }
 
-  if (is.null(ref)) {
-    expect_null(x_ref)
-  } else {
-    x_ref_str <- if (is.list(x_ref)) {
-      sapply(x_ref, as.character)
-    } else {
-      as.character(x_ref)
+##   r <- impute_fun_srcref(f)
+##   expect_srcref(body(r)[[2]], "tryCatch(g())")
+##   expect_srcref(body(r)[[2]][[2]], "g()")
+## })
+
+test_that("for", {
+  f <- function() {
+    for (x in y()) {
+      g()
     }
-
-    expect_equal(x_ref_str, ref)
   }
-}
 
+  r <- impute_fun_srcref(f)
+  expect_srcref(body(r)[[2]][[3]], "y()")
+  expect_srcref(body(r)[[2]][[4]][[2]], "g()")
+})
+
+test_that("while", {
+  f <- function() {
+    while ((x())) {
+      g()
+    }
+  }
+
+  r <- impute_fun_srcref(f)
+  expect_srcref(body(r)[[2]][[2]][[2]], "x()")
+  expect_srcref(body(r)[[2]][[3]][[2]], "g()")
+})
+
+test_that("assignments", {
+  f <- function() {
+    x <- g()
+    h() -> y
+    z = i()
+  }
+
+  r <- impute_fun_srcref(f)
+  expect_srcref(body(r)[[2]][[3]], "g()")
+  expect_srcref(body(r)[[3]][[3]], "h()")
+  expect_srcref(body(r)[[4]][[3]], "i()")
+})
 ## test_that("match.arg", {
 ##   f <- function(x=c("a", "b")) {
 ##     match.arg(x)
@@ -38,20 +68,20 @@ expect_srcref <- function(x, ref) {
 ##   expect_false(is.na(d$caller_srcref))
 ## })
 
-test_that("trace_eval works with imputed srcref", {
-  g <- function(xs, f1) {
-    for (x in xs) f1(x)
-  }
+## test_that("trace_eval works with imputed srcref", {
+##   g <- function(xs, f1) {
+##     for (x in xs) f1(x)
+##   }
   
-  f <- function(n, expr) {
-    g(integer(n), eval.parent(substitute(function(...) expr)))
-  }
+##   f <- function(n, expr) {
+##     g(integer(n), eval.parent(substitute(function(...) expr)))
+##   }
 
-  d <- do_trace_eval(f(1, 1))
+##   d <- do_trace_eval(f(1, 1))
 
-  browser()
-  expect_true(is.na(d$caller_srcref))
+##   browser()
+##   expect_true(is.na(d$caller_srcref))
 
-#  g <- impute_fun_srcref(f)
+## #  g <- impute_fun_srcref(f)
 
-})
+## })

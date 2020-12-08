@@ -4,7 +4,7 @@
 #' @importFrom purrr map map2
 #' @export
 #'
-search_function_calls <- function(expr, functions, srcref=NULL) {
+search_function_calls <- function(expr, functions) {
   functions_names <- str_replace(functions, "^.*:::", "")
 
   is_interesting_call <- function(call) {
@@ -26,24 +26,18 @@ search_function_calls <- function(expr, functions, srcref=NULL) {
     }
   }
 
-  loop <- function(node, srcref=NULL) {
+  loop <- function(node) {
     if (is.atomic(node) || is.name(node)) {
       NULL
     } else {
-      nested_srcref <- attr(node, "srcref")
-      if (length(nested_srcref) != length(node)) {
-        nested_srcref <- map(seq(length(node)), ~NULL)
-      }
-
-      calls <- unlist(map2(node, nested_srcref, loop))
+      calls <- unlist(map(node, loop))
 
       if (is.call(node) && is_interesting_call(node)) {
-        attr(node, "srcref") <- srcref
         calls <- append(calls, node)
       }
       calls
     }
   }
 
-  loop(expr, srcref)
+  loop(expr)
 }

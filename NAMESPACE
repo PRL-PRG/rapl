@@ -3,6 +3,7 @@
 export(cloc)
 export(current_script)
 export(extract_package_code)
+export(impute_fun_srcref)
 export(is_s3_dispatch_method)
 export(read_files)
 export(read_parallel_log)
