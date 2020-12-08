@@ -93,14 +93,14 @@ cmd_functions <- function(path) {
   exports <- getNamespaceExports(package)
   bindings <- ls(env=ns, all.names=TRUE)
 
-  function_bindings <- map_chr(bindings, function(x) {
+  function_bindings <- sapply(bindings, USE.NAMES=FALSE, function(x) {
     f <- get0(x, envir=ns)
     if (!is.function(f)) NA else x
   })
   function_bindings <- na.omit(function_bindings)
-  functions <- map(function_bindings, get0, envir=ns)
+  functions <- lapply(function_bindings, get0, envir=ns)
 
-  params <- map(functions, function(x) names(formals(x)))
+  params <- lapply(functions, function(x) names(formals(x)))
 
   s3_methods <- NULL
   if (exists(".__NAMESPACE__.", envir=ns)) {
@@ -111,10 +111,10 @@ cmd_functions <- function(path) {
     s3_methods <- character(0)
   }
 
-  is_s3_dispatch <- map_lgl(functions, is_s3_dispatch_method)
+  is_s3_dispatch <- sapply(functions, USE.NAMES=FALSE, is_s3_dispatch_method)
   is_s3_method <- function_bindings %in% s3_methods
 
-  params <- map_chr(params, paste0, collapse=";")
+  params <- sapply(params, USE.NAMES=FALSE, paste0, collapse=";")
   exported <- function_bindings %in% exports
 
   df <- data.frame(
@@ -160,5 +160,5 @@ cmds <- list(
 )
 
 for (cmd in cmds) {
-  tryCatch(cmd(package_path), error=function(e) NULL)
+  cmd(package_path)
 }
