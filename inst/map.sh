@@ -8,7 +8,7 @@ JOBS=${RUNR_JOBS:-1}
 OUTPUT_DIR=${RUNR_OUTPUT_DIR:-run}
 INPUT_FILE=${RUNR_INPUT_FILE:-'-'}
 EXEC_WRAPPER=${RUNR_EXEC_WRAPPER:-"$(dirname $(realpath "$0"))/run-job.sh"}
-DEF_WORK_DIR=${RUNR_WORK_DIR:-'{=1 $_=join("/",@arg) =}'}
+DEF_WORK_DIR=${RUNR_WORK_DIR:-'{= $_=join("/",@arg) =}'}
 
 usage() {
 cat << EOF
