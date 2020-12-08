@@ -283,6 +283,6 @@ wrap_files <- Vectorize(function(package, file, type, wrap_fun, quiet) {
     new_body <- wrap_fun(package, file, type, body)
     writeLines(new_body, file)
   }, error=function(e) {
-    warning("E unable to parse wrapped file", file, ": ", e$message)
+    message("E unable to wrap file", file, ": ", e$message)
   })
 }, vectorize.args=c("file", "type"))
