@@ -55,7 +55,7 @@ PARSING_EXEC_EXTRA_ARGS=0
 VERBOSE=0
 
 parse_arg() {
-    if [[ -n "$2" ]] && [[ ${2:0:1} != "-" ]]; then
+    if [[ -n "$2" ]] && [ ${2:0:1} != "-" -o ${#2} -eq 1 ]; then
         eval "$1='$2'"
     else
         echo "Error: $1 is missing argument" >&2
