@@ -269,18 +269,20 @@ is_testthat_driver <- Vectorize(function(file) {
          endsWith(file_lower, "run-all.r"))
 })
 
+#' @export
 wrap_using_template <- function(template) {
   function(package, file, type, body) str_glue(template)
 }
 
-wrap_files <- Vectorize(function(package, file, type, wrap_fun, quiet) {
+#' @export
+wrap_files <- Vectorize(function(package, file, type, wrap_fun, quiet=TRUE) {
   if (!quiet) {
     message("- updating ", file, " (", type, ")")
   }
 
   # TODO share with run_all
   tryCatch({
-    body <- readChar(file, file.info(file)$size)
+    body <- read_file(file)
     new_body <- wrap_fun(package, file, type, body)
     writeLines(new_body, file)
   }, error=function(e) {

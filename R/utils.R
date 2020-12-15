@@ -57,3 +57,15 @@ is_s3_dispatch_method <- function(fun) {
   globals <- codetools::findGlobals(fun, merge = FALSE)$functions
   any(globals == "UseMethod" | globals == "NextMethod")
 }
+
+#' @importFrom digest sha1
+#' @export
+file_sha1 <- function(file) {
+  code <- readChar(file, file.info(file)$size)
+  digest::sha1(code)
+}
+
+#' @export
+read_file <- function(filename) {
+  readChar(filename, file.info(filename)$size)
+}
