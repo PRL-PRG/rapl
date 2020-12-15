@@ -78,3 +78,5 @@ end_time="$(date +%s)"
 
 echo "exitval,hostname,start_time,end_time,command" > "$STATS"
 echo "$exitval,$(hostname),$start_time,$end_time,\"$command\"" >> "$STATS"
+
+exit $exitval
