@@ -35,6 +35,7 @@ Options:
   -w | --workdir DIR    a subdirectory of output which will be used as working directory for a job
                         (default output/$DEF_WORK_DIR) all input parameters separated by '/'
   --no-exec-wrapper     disable exec wrapper
+  --override            override output
 
 
   any other optionss will be passed to GNU parallel arguments
@@ -103,6 +104,10 @@ while (( "$#" )); do
             EXEC_WRAPPER=""
             shift
             ;;
+        --override)
+            OUTPUT_DIR_OVERRIDE=1
+            shift
+            ;;
         --)
             PARSING_EXEC_EXTRA_ARGS=1
             shift
@@ -149,7 +154,7 @@ if [[ "$INPUT_FILE" != "-" ]]; then
   fi
 fi
 
-if [[ -d "$OUTPUT_DIR" ]]; then
+if [ -d "$OUTPUT_DIR" -a -z "$OUTPUT_DIR_OVERRIDE" ]; then
   echo "$OUTPUT_DIR already exists!"
   exit 1
 fi
