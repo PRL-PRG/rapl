@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 
-library(fst)
 library(optparse)
 library(progress)
 library(purrr)
@@ -30,6 +29,22 @@ option_list <- list(
     help="Limit number of processed files [default: %default]", type="integer",
     default=0,
     metavar="NUM"
+  ),
+  make_option(
+    "--csv-cols",
+    help="CSV col_types specification (c - string, i - int, d - double, l - logical)",
+    dest="csv_cols", metavar="TYPES"
+  ),
+  make_option(
+    "--key", default="file",
+    help="Name of key column [default: %default]",
+    dest="key_name", metavar="STR"
+  ),
+  make_option(
+    "--key-use-dirname", default=FALSE,
+    action="store_true",
+    help="Use basename of the dirname of the file name",
+    dest="key_use_dirname"
   )
 )
 
@@ -75,6 +90,33 @@ with_stopwatch <- function(message, code) {
 
 for (file_name in file_names) {
   cat("Merging", file_name, "from", in_dir, "...\n")
+  ext <- tools::file_ext(file_name)
+
+  read_fun <- NULL
+  write_fun <- NULL
+
+  # this will also trigger the library loading
+  switch(
+    ext,
+    csv={
+      read_args <- list()
+      if (!is.null(options$csv_cols)) {
+        read_args <- c(read_args, col_types=options$csv_cols)
+      }
+
+      read_fun <- if (length(read_args) > 0) {
+        function(file) do.call(readr::read_csv, c(file=file, read_args))
+      } else {
+        readr::read_csv
+      }
+
+      write_fun <- readr::write_csv
+    },
+    fst={
+      read_fun <- fst::read_fst
+      write_fun <- fst::write_fst
+    }
+  )
 
   files <- find_files(
     in_dir,
@@ -83,6 +125,12 @@ for (file_name in file_names) {
     limit=options$limit,
     quiet=options$quiet
   )
+
+  if (length(files) == 0) {
+    cat("No files found")
+    q(status=0)
+  }
+
   merged_file <- file.path(in_dir, file_name)
   merged_errors_file <- file.path(
     in_dir,
@@ -104,9 +152,11 @@ for (file_name in file_names) {
   res <- map(
     files,
     ~tryCatch({
-      tmp <- read_fst(.)
+      tmp <- read_fun(.)
       if (!is.data.frame(tmp)) stop("Not a data frame: ", typeof(tmp))
-      add_column(tmp, file=., .before=1)
+      key <- if (options$key_use_dirname) basename(dirname(.)) else .
+      key_name <- options$key_name
+      add_column(tmp, !!key_name := key, .before=1)
     }, error=function(e) {
       tmp <- tibble(file=., error=e$message)
       attr(tmp, "error") <- TRUE
@@ -125,14 +175,14 @@ for (file_name in file_names) {
   if (nrow(data_df) > 0) {
     with_stopwatch(paste("Saving", nrow(data_df), "records into:", merged_file), {
       unlink(merged_file)
-      write_fst(data_df, merged_file)
+      write_fun(data_df, merged_file)
     })
   }
 
   if (nrow(errors_df) > 0) {
     with_stopwatch(paste("Saving", nrow(errors_df), "errors into:", merged_errors_file), {
       unlink(merged_errors_file)
-      write_fst(errors_df, merged_errors_file)
+      write_fun(errors_df, merged_errors_file)
     })
   }
 }
