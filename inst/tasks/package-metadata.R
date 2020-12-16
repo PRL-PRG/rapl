@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
 
-suppressPackageStartupMessages(library(runr))
-suppressPackageStartupMessages(library(stringr))
+library(optparse)
+library(runr)
+library(stringr)
 
 METADATA_FILE <- "metadata.csv"
 SLOC_FILE <- "sloc.csv"
@@ -48,14 +49,10 @@ cmd_sloc <- function(path) {
   write.csv(df, SLOC_FILE, row.names=FALSE)
 }
 
-cmd_revdeps <- function(path) {
+cmd_revdeps <- function(path, cran_mirror) {
   package <- basename(path)
 
-  mirror <- Sys.getenv(
-    "CRAN_MIRROR_LOCAL_URL",
-    Sys.getenv("CRAN_MIRROR_URL", "https://cran.r-project.org")
-  )
-  options(repos=mirror)
+  options(repos=cran_mirror)
 
   revdeps <- unlist(
     tools::package_dependencies(
@@ -81,13 +78,6 @@ is_s3 <- function(fun) {
 
 cmd_functions <- function(path) {
   package <- basename(path)
-
-  args <- commandArgs(trailingOnly=TRUE)
-  if (length(args) != 1) {
-    stop("Missing a path to the package source")
-  }
-
-  package <- basename(args[1])
 
   ns <- getNamespace(package)
   exports <- getNamespaceExports(package)
@@ -128,7 +118,7 @@ cmd_functions <- function(path) {
   write.csv(df, FUNCTIONS_FILE, row.names=FALSE)
 }
 
-cmd_s3_classes <- function(path) {
+cmd_s3 <- function(path) {
   package <- basename(path)
   ns <- getNamespace(package)
 
@@ -144,21 +134,45 @@ cmd_s3_classes <- function(path) {
   write.csv(df, S3_CLASSES_FILE, row.names=FALSE)
 }
 
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args) != 1) {
-  stop("Usage: package-metadata.R <path to package source>")
-}
+TYPES <- c("metadata", "sloc", "revdeps", "functions", "s3")
 
-package_path <- args[1]
-
-cmds <- list(
-  cmd_metadata,
-  cmd_sloc,
-  cmd_revdeps,
-  cmd_functions,
-  cmd_s3_classes
+option_list <- list(
+  make_option(
+    c("--cran-mirror"), default="https://cran.r-project.org",
+    help="Which mirror to use [default: %default]",
+    dest="cran_mirror", metavar="URL"
+  ),
+  make_option(
+    c("--types"), default=paste0(TYPES, collapse=","),
+    help="Which metadata to generate [default: %default]",
+    dest="types", metavar="TYPE"
+  )
 )
 
-for (cmd in cmds) {
-  cmd(package_path)
+opt_parser <- OptionParser(option_list=option_list)
+opts <- parse_args(opt_parser, positional_arguments=1)
+
+package_path <- opts$args[1]
+
+types <- str_split(opts$options$types, ",")[[1]]
+types <- match.arg(types, choices=TYPES, several.ok=TRUE)
+
+if ("metadata" %in% types) {
+  cmd_metadata(package_path)
+}
+
+if ("sloc" %in% types) {
+  cmd_sloc(package_path)
+}
+
+if ("revdeps" %in% types) {
+  cmd_revdeps(package_path, opts$options$cran_mirror)
+}
+
+if ("functions" %in% types) {
+  cmd_functions(package_path)
+}
+
+if ("s3" %in% types) {
+  cmd_s3(package_path)
 }
