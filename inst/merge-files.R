@@ -140,10 +140,9 @@ for (file_name in file_names) {
   cat("- found:", length(files), "\n")
   cat("- merged file:", merged_file, "\n")
   cat("- merged errors file:", merged_errors_file, "\n")
-  cat("\n")
 
   pb <- progress_bar$new(
-    format="Reading [:bar] :current/:total :percent, :eta",
+    format="- reading [:bar] :current/:total :percent, :eta",
     total=length(files),
     clear=FALSE,
     width=80
@@ -166,21 +165,21 @@ for (file_name in file_names) {
     })
   )
 
-  cat("\nFiltering", length(res), "loaded data frames...\n")
+  cat("- filtering", length(res), "loaded data frames...\n")
 
   errors <- map_lgl(res, ~isTRUE(attr(., "error")))
   data_df <- map_dfr(res[!errors], identity)
   errors_df <- map_df(res[errors], identity)
 
   if (nrow(data_df) > 0) {
-    with_stopwatch(paste("Saving", nrow(data_df), "records into:", merged_file), {
+    with_stopwatch(paste("- saving", nrow(data_df), "records into:", merged_file), {
       unlink(merged_file)
       write_fun(data_df, merged_file)
     })
   }
 
   if (nrow(errors_df) > 0) {
-    with_stopwatch(paste("Saving", nrow(errors_df), "errors into:", merged_errors_file), {
+    with_stopwatch(paste("- saving", nrow(errors_df), "errors into:", merged_errors_file), {
       unlink(merged_errors_file)
       write_fun(errors_df, merged_errors_file)
     })
