@@ -269,9 +269,17 @@ is_testthat_driver <- Vectorize(function(file) {
          endsWith(file_lower, "run-all.r"))
 })
 
+#' @importFrom stringr str_replace
+#' @importFrom magrittr %>%
 #' @export
 wrap_using_template <- function(template) {
-  function(package, file, type, body) str_glue(template)
+  function(package, file, type, body) {
+    template %>%
+      str_replace(".PACKAGE.", package) %>%
+      str_replace(".FILE.", file) %>%
+      str_replace(".TYPE.", type) %>%
+      str_replace(".BODY.", body)
+  }
 }
 
 #' @export
