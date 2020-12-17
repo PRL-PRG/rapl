@@ -275,10 +275,10 @@ is_testthat_driver <- Vectorize(function(file) {
 wrap_using_template <- function(template) {
   function(package, file, type, body) {
     template %>%
-      str_replace(".PACKAGE.", package) %>%
-      str_replace(".FILE.", file) %>%
-      str_replace(".TYPE.", type) %>%
-      str_replace(".BODY.", body)
+      str_replace(fixed(".PACKAGE."), package) %>%
+      str_replace(fixed(".FILE."), file) %>%
+      str_replace(fixed(".TYPE."), type) %>%
+      str_replace(fixed(".BODY."), body)
   }
 }
 
