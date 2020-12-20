@@ -51,7 +51,8 @@ EOF
 
 RUNR_INST_DIR=$(dirname $(realpath "$0"))
 EXEC_EXTRA_ARGS=""
-PARALLEL_EXTRA_ARGS="--halt now,fail=25%"
+# PARALLEL_EXTRA_ARGS="--halt now,fail=25%"
+PARALLEL_EXTRA_ARGS=""
 PARSING_EXEC_EXTRA_ARGS=0
 VERBOSE=0
 
