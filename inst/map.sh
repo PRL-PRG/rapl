@@ -155,8 +155,10 @@ if [[ "$INPUT_FILE" != "-" ]]; then
   fi
 fi
 
-if [ -d "$OUTPUT_DIR" -a -z "$OUTPUT_DIR_OVERRIDE" ]; then
-  echo "$OUTPUT_DIR already exists!"
+RESULT_FILE="$OUTPUT_DIR/parallel.csv"
+
+if [ -f "$RESULT_FILE" -a -z "$OUTPUT_DIR_OVERRIDE" ]; then
+  echo "$RESULT_FILE already exists!"
   exit 1
 fi
 
@@ -164,7 +166,6 @@ fi
 
 OUTPUT_DIR=$(realpath "$OUTPUT_DIR")
 PARALLEL_LOG="$OUTPUT_DIR/parallel.log"
-RESULT_FILE="$OUTPUT_DIR/parallel.csv"
 JOBS_FILE="$OUTPUT_DIR/jobs.txt"
 MAP_CMD_FILE="$OUTPUT_DIR/map-cmd.txt"
 TASK_NAME=$(basename "$EXEC")
