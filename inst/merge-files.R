@@ -150,25 +150,38 @@ for (file_name in file_names) {
 
   res <- map(
     files,
-    ~tryCatch({
-      tmp <- read_fun(.)
-      if (!is.data.frame(tmp)) stop("Not a data frame: ", typeof(tmp))
-      key <- if (options$key_use_dirname) basename(dirname(.)) else .
-      key_name <- options$key_name
-      add_column(tmp, !!key_name := key, .before=1)
-    }, error=function(e) {
-      tmp <- tibble(file=., error=e$message)
-      attr(tmp, "error") <- TRUE
-      tmp
-    }, finally= {
-      pb$tick()
-    })
+    function(f) {
+      tryCatch({
+        tmp <- read_fun(f)
+
+        if (!is.data.frame(tmp)) {
+          stop("Not a data frame: ", typeof(tmp))
+        }
+
+        if (nrow(tmp) > 0) {
+          key <- if (isTRUE(options$key_use_dirname)) basename(dirname(f)) else f
+          key_name <- options$key_name
+          add_column(tmp, !!key_name := key, .before=1)
+        }
+
+      }, error=function(e) {
+        tmp <- tibble(file=f, error=e$message)
+        attr(tmp, "__error") <- TRUE
+        tmp
+      }, finally= {
+        pb$tick()
+      })
+    }
   )
 
   cat("- filtering", length(res), "loaded data frames...\n")
 
-  errors <- map_lgl(res, ~isTRUE(attr(., "error")))
+  errors <- map_lgl(res, ~isTRUE(attr(., "__error")))
+
+  browser()
+
   data_df <- map_dfr(res[!errors], identity)
+
   errors_df <- map_df(res[errors], identity)
 
   if (nrow(data_df) > 0) {
