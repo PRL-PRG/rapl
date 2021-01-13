@@ -52,7 +52,16 @@ cmd_sloc <- function(path) {
 cmd_revdeps <- function(path, cran_mirror) {
   package <- basename(path)
 
-  options(repos=cran_mirror)
+  if (startsWith(cran_mirror, "file://")) {
+    mirror_path <- str_replace(cran_mirror, fixed("file://"), "")
+    mirror_path <- file.path(mirror_path, "src/contrib/PACKAGES")
+    if (dir.exists(mirror_path)) {
+      options(repos=cran_mirror)
+    } else {
+      warning("** specified CRAN mirror: ", cran_mirror, " does not exist, using cloud")
+      options(repos="https://cloud.r-project.org")
+    }
+  }
 
   revdeps <- unlist(
     tools::package_dependencies(
