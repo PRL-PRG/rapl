@@ -127,7 +127,7 @@ for (file_name in file_names) {
   )
 
   if (length(files) == 0) {
-    cat("No files found")
+    cat("No files found\n")
     q(status=0)
   }
 
