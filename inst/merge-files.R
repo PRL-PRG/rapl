@@ -178,8 +178,6 @@ for (file_name in file_names) {
 
   errors <- map_lgl(res, ~isTRUE(attr(., "__error")))
 
-  browser()
-
   data_df <- map_dfr(res[!errors], identity)
 
   errors_df <- map_df(res[errors], identity)
