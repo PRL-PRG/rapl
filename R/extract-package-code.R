@@ -219,7 +219,7 @@ expand_testthat_tests <- function(pkg_name, test_dir) {
     code <- str_glue(
       "library({pkg_name})",
       "library(testthat)",
-      "test_check('{pkg_name}', filter='{test_name}')",
+      "test_check('{pkg_name}', filter='^{test_name}$')",
       .sep = "\n"
     )
     writeLines(code, driver_file)
