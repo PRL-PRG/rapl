@@ -1,28 +1,3 @@
-test_that("test srcrefs", {
-  f <- function() {
-    eval(parse(text = paste(eval(efunE), "(", eval(eexE), eval(eelyE),
-    eval(eehyE), eval(erestE), ")")))
-  }
-
-  f <- impute_fun_srcref(f)
-
-  funs <- search_function_calls(body(f), "base:::eval")
-  expect_srcref(funs[[1]], "eval(1)")
-  expect_srcref(funs[[2]], "eval(2)")
-})
-
-test_that("test srcrefs", {
-  f <- function() {
-    x <- tryCatch(eval(1), error=function(e) eval(2))
-  }
-
-  f <- impute_fun_srcref(f)
-
-  funs <- search_function_calls(body(f), "base:::eval")
-  expect_srcref(funs[[1]], "eval(1)")
-  expect_srcref(funs[[2]], "eval(2)")
-})
-
 test_that("test search_function_calls", {
   code <- "
     function(x) {
