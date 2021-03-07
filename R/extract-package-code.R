@@ -3,7 +3,7 @@
 #'   content. If it is a file it case use the {body}, {package}, {type}, {file} placeholders.
 #' @importFrom dplyr select mutate filter vars bind_rows rename anti_join left_join ends_with `%>%`
 #' @importFrom purrr keep imap_dfr
-#' @importFrom stringr str_replace
+#' @importFrom stringr str_replace str_sub
 #' @export
 extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
                                  types=c("examples", "tests", "vignettes", "all"),
@@ -69,9 +69,10 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
       )
 
     sloc_testthat <-
-      filter(sloc_all, str_detect(file, "tests/testthat/test[-]?.*\\.[rR]$")) %>%
+      sloc_all %>%
+      filter(str_detect(file, file.path(output_dir, "tests/testthat/test[-_]?.*\\.[rR]$"))) %>%
       mutate(
-        test_name=str_replace(file, ".*/tests/testthat/test[-]?(.*)\\.[rR]$", "\\1")
+        test_name=str_replace(file, file.path(output_dir, "tests/testthat/test[-_]?(.*)\\.[rR]$"), "\\1")
       )
 
     df <- if (nrow(sloc_testthat) > 0) {
@@ -79,7 +80,7 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
         filter(sloc, type=="tests") %>%
         mutate(
           test_driver=sapply(file, is_testthat_driver),
-          test_name=str_replace(file, ".*/tests/testthat-drv-(.*)\\.[rR]$", "\\1")
+          test_name=str_replace(file, file.path(output_dir, "tests/testthat-drv-(.*)\\.[rR]$"), "\\1")
         )
 
       sloc_tests_merged <-
@@ -140,7 +141,7 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
 
   df <- mutate(
     df,
-    file=str_sub(file, nchar(output_dir)+2, nchar(file))
+    file=stringr::str_sub(file, nchar(output_dir)+2, nchar(file))
   )
 }
 
@@ -214,7 +215,7 @@ expand_testthat_tests <- function(pkg_name, test_dir) {
   test_files <- testthat::find_test_scripts(testthat_dir)
   for (file in test_files) {
     test_name <- basename(file)
-    test_name <- str_replace(test_name, "^test[-]?(.*)\\.[rR]$", "\\1")
+    test_name <- str_replace(test_name, "^test[-_]?(.*)\\.[rR]$", "\\1")
     driver_file <- file.path(test_dir, paste0("testthat-drv-", test_name, ".R"))
     code <- str_glue(
       "library({pkg_name})",
@@ -248,6 +249,8 @@ extract_package_vignettes <- function(pkg, pkg_dir, output_dir) {
     return(character())
   }
 
+  # the pkgVignettes can return duplicates
+  files <- unique(files)
   dirs <- unique(dirname(files))
   for (d in dirs) {
       fs <- Sys.glob(file.path(d, "*"))
