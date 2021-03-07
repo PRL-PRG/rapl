@@ -3,7 +3,7 @@
 set -e
 
 CMD="$0 $@"
-TIMEOUT=${RUNR_TIMEOUT:-30m}
+TIMEOUT=$RUNR_TIMEOUT
 JOBS=${RUNR_JOBS:-1}
 OUTPUT_DIR=${RUNR_OUTPUT_DIR:-run}
 INPUT_FILE=${RUNR_INPUT_FILE:-'-'}
@@ -176,6 +176,10 @@ fi
 
 echo "$JOBS" > "$JOBS_FILE"
 
+if [[ -n "$TIMEOUT" ]]; then
+  PARALLEL_EXTRA_ARGS="$PARALLEL_EXTRA_ARGS --timeout $TIMEOUT"
+fi
+
 DEBUG_MSG=$(cat <<-EOM
 CMD:      $CMD
 INPUT:    $INPUT_FILE
@@ -205,7 +209,6 @@ parallel \
   --results "$RESULT_FILE" \
   --jobs "$JOBS_FILE" \
   --tagstring "$TASK_NAME - {}" \
-  --timeout "$TIMEOUT" \
   --workdir "$WORK_DIR" \
   $PARALLEL_EXTRA_ARGS \
   "$EXEC_WRAPPER" \
