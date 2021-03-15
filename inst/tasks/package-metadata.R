@@ -53,7 +53,7 @@ cmd_revdeps <- function(path, cran_mirror) {
   package <- basename(path)
 
   if (startsWith(cran_mirror, "file://")) {
-    mirror_path <- str_replace(cran_mirror, fixed("file://"), "")
+    mirror_path <- str_sub(cran_mirror, nchar("file://") + 1)
     mirror_path <- file.path(mirror_path, "src/contrib/PACKAGES")
     if (dir.exists(mirror_path)) {
       options(repos=cran_mirror)
