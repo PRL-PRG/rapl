@@ -74,7 +74,7 @@ run <- function(path, options) {
       )
     }, error=function(e) {
       message("Error getting coverage for ", pkg_src, " type ", type, ": ", e$message)
-      tibble(type, error=e$message)
+      tibble(type, coverage_line=NA, coverage_expression=NA, error=e$message)
     })
   })
 
