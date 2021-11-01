@@ -54,6 +54,10 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     extracted_files,
     ~length(.) == 0
   )
+  
+  if(length(extracted_files) == 0) {
+    return(data.frame(file=character(0), type = character(0)))
+  }
 
   df <- purrr::imap_dfr(extracted_files, ~data.frame(file=.x, type=.y))
 
@@ -143,6 +147,7 @@ extract_package_code <- function(pkg, pkg_dir=find.package(pkg),
     df,
     file=stringr::str_sub(file, nchar(output_dir)+2, nchar(file))
   )
+  df
 }
 
 #' @importFrom tools Rd_db Rd2ex
@@ -229,7 +234,8 @@ expand_testthat_tests <- function(pkg_name, test_dir) {
 
 #' @importFrom tools pkgVignettes checkVignettes
 extract_package_vignettes <- function(pkg, pkg_dir, output_dir) {
-  vinfo <- tools::pkgVignettes(pkg, source=T)
+  lib_path <- dirname(pkg_dir)
+  vinfo <- tools::pkgVignettes(pkg, lib.loc = lib_path, source=T)
   if (length(vinfo$docs) == 0) {
     return(character())
   }
@@ -239,11 +245,11 @@ extract_package_vignettes <- function(pkg, pkg_dir, output_dir) {
     # sources in the R code. It might actually run the vignettes as well.
     # That is a pity, but there is no way to tell it not to (the tangle is
     # needed to it extracts the R code)
-    tools::checkVignettes(pkg, pkg_dir, tangle=TRUE, weave=FALSE, workdir="src")
+    tools::checkVignettes(pkg, pkg_dir, tangle=TRUE, lib.loc = lib_path, weave=FALSE, workdir="src")
   }
 
   # check if there are some sources
-  vinfo <- tools::pkgVignettes(pkg, source=T)
+  vinfo <- tools::pkgVignettes(pkg, lib.loc = lib_path, source=T)
   files <- as.character(unlist(vinfo$sources))
   if (length(files) == 0) {
     return(character())
