@@ -2,7 +2,7 @@
 #' @importFrom tibble add_column
 #' @importFrom dplyr filter
 #' @export
-cloc <- function(path, by_file=FALSE, r_only=FALSE, cloc_bin="cloc") {
+cloc <- function(path, by_file = FALSE, r_only = FALSE, cloc_bin = "cloc") {
   args <- c(
     "--follow-links",
     "-q",
@@ -12,17 +12,17 @@ cloc <- function(path, by_file=FALSE, r_only=FALSE, cloc_bin="cloc") {
   )
 
   sloc <- system2(cloc_bin, args, stdout = TRUE)[-1]
- 
+
   if (length(sloc) > 1) {
-    sloc[1] <- str_replace(sloc[1], ',"github.com/AlDanial/cloc.*', "")
-    df <- read_csv(sloc, col_types="cciii")
+    sloc[1] <- stringr::str_replace(sloc[1], ',"github.com/AlDanial/cloc.*', "")
+    df <- readr::read_csv(I(sloc), col_types = "cciii")
 
     if (!by_file) {
-      df <- add_column(df, path=path, .before="files")
+      df <- tibble::add_column(df, path = path, .before = "files")
     }
 
     if (r_only) {
-      df <- filter(df, language=="R")
+      df <- filter(df, language == "R")
     }
 
     df

@@ -1,6 +1,6 @@
 .PHONY: all build check document test
 
-all: document build check
+all: install
 
 build: document
 	R CMD build .
@@ -15,6 +15,8 @@ clean:
 test:
 	Rscript -e 'devtools::test()'
 
-install:
+document:
 	Rscript -e 'devtools::document()'
+
+install:
 	R CMD INSTALL .
