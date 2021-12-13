@@ -58,7 +58,7 @@ install_cran_packages <- function(packages, lib_dir = NULL, r_home = R.home(),
     installed <- installed.packages(lib.loc = lib_dir)
   }
 
-  info <- installed[installed[, "Package"] %in% packages, ]
+  info <- installed[installed[, "Package"] %in% packages, drop=FALSE, ]
 
   tibble(
     package = info[, "Package"],
