@@ -5,7 +5,7 @@
 #' @export
 install_cran_packages <- function(packages, lib_dir = NULL, r_home = R.home(),
                                   dest_dir = NULL, mirror = "https://cloud.r-project.org/", force = FALSE,
-                                  dependencies = TRUE,
+                                  dependencies = TRUE, check = TRUE,
                                   install_opts = c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"),
                                   n_cpus = floor(.9 * parallel::detectCores())) {
   options(repos = mirror)
@@ -19,7 +19,17 @@ install_cran_packages <- function(packages, lib_dir = NULL, r_home = R.home(),
   if (force) {
     missing <- packages
   } else {
-    installed <- installed.packages(lib.loc = lib_dir)
+    installed <- {
+      installed <- installed.packages(lib.loc=lib_dir)
+      if (check) {
+        existing <- intersect(requested, installed[, 1])
+        loadable <- sapply(existing, function(x) require(x))
+        to_reinstall <- existing[!loadable]
+        installed <- installed[installed[, 1] != to_reinstall, ]
+      }
+      installed
+    }
+
     missing <- setdiff(requested, installed[, 1])
   }
 
