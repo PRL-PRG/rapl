@@ -23,9 +23,9 @@ install_cran_packages <- function(packages, lib_dir = NULL, r_home = R.home(),
       installed <- installed.packages(lib.loc=lib_dir)
       if (check) {
         existing <- intersect(requested, installed[, 1])
-        loadable <- sapply(existing, function(x) require(x, character.only=TRUE))
-        to_reinstall <- existing[!loadable]
-        installed <- installed[installed[, 1] != to_reinstall, ]
+        not_loadable <- sapply(existing, function(x) !require(x, character.only=TRUE))
+        not_loadable <- names(not_loadable)[not_loadable]
+        installed <- installed[installed[, 1] %in% setdiff(installed[, 1], not_loadable), ]
       }
       installed
     }
