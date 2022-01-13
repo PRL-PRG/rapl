@@ -74,9 +74,9 @@ extract_package_code <- function(pkg, pkg_dir = find.package(pkg),
 
     sloc_testthat <-
       sloc_all %>%
-      filter(str_detect(file, file.path(output_dir, "tests/testthat/test[-]?.*\\.[rR]$"))) %>%
+      filter(str_detect(file, file.path(output_dir, "tests/testthat/test[-_]?.*\\.[rR]$"))) %>%
       mutate(
-        test_name = str_replace(file, file.path(output_dir, "tests/testthat/test[-]?(.*)\\.[rR]$"), "\\1")
+        test_name = str_replace(file, file.path(output_dir, "tests/testthat/test[-_]?(.*)\\.[rR]$"), "\\1")
       )
 
     df <- if (nrow(sloc_testthat) > 0) {
@@ -228,7 +228,7 @@ expand_testthat_tests <- function(pkg_name, test_dir) {
   test_files <- testthat::find_test_scripts(testthat_dir)
   for (file in test_files) {
     test_name <- basename(file)
-    test_name <- str_replace(test_name, "^test[-]?(.*)\\.[rR]$", "\\1")
+    test_name <- str_replace(test_name, "^test[-_]?(.*)\\.[rR]$", "\\1")
     driver_file <- file.path(test_dir, paste0("testthat-drv-", test_name, ".R"))
     code <- str_glue(
       "library({pkg_name})",

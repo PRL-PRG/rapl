@@ -13,7 +13,7 @@ test_that("testthat is properly handled", {
   files <- extract_package_code(
     "pkg.testthat1", test_pkg_dir,
     types="tests", out_dir, wrap=wrapper,
-    compute_sloc=TRUE, quiet=FALSE
+    split_testthat=TRUE, compute_sloc=TRUE, quiet=FALSE
   )
 
   expect_equal(
@@ -28,12 +28,13 @@ test_that("testthat is properly handled", {
   expect_equal(purrr::map_int(files$file, ~length(readLines(file.path(out_dir, .)))), c(3, 3))
 
   # the testthat files are wrapped
-  tt_tests <- file.path(dirname(files$file), "testthat" ,c("test-test1.R", "test-test2.R"))
+  tt_tests <- file.path(dirname(files$file), "testthat", c("test-test1.R", "test_test2.R"))
   expect_equal(
     purrr::map_chr(tt_tests, ~readLines(file.path(out_dir, .))[1]),
     c(
       "# pkg.testthat1 :: tests :: test-test1.R",
-      "# pkg.testthat1 :: tests :: test-test2.R"
+      "# pkg.testthat1 :: tests :: test_test2.R"
     )
   )
 })
+
