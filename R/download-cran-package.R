@@ -3,6 +3,7 @@
 download_cran_package_source <- function(package, version = NULL, dest_dir = NULL,
                                   repos = getOption("repos")) {
   archive <- remotes::download_version(package, version, repos)
+  on.exit(unlink(archive))
 
   utils::untar(archive, exdir = dest_dir)
 
