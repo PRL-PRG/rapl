@@ -2,7 +2,7 @@ test_that("test running basic test", {
   out_file <- tempfile()
   on.exit(out_file)
 
-  ret <- run_one("data/basictest/primitives.R", out_file)
+  ret <- run_one("data/basictest/basic.R", out_file)
 
   expect_equal(ret$exitval, 0L)
   expect_true(ret$time > 0)
@@ -14,11 +14,11 @@ test_that("run_all can run all files", {
   withr::with_tempdir({
     df <- run_all(test_dir)
     expect_equal(basename(df$file), c("case.Rd.R", "str_c.Rd.R", "testthat.R", "stringr.R"))
-    expect_equal(df$exitval, c(0,0,1,0))
+    expect_equal(df$exitval, c(0, 0, 1, 0))
     expect_equal(df$error, c(NA, NA, NA, NA))
     for (f in df$out_file) expect_true(file.size(f) > 0)
   })
-}) 
+})
 
 test_that("run_all can wrap running code", {
   withr::with_tempdir({

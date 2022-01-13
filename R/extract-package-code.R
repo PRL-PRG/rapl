@@ -74,9 +74,9 @@ extract_package_code <- function(pkg, pkg_dir = find.package(pkg),
 
     sloc_testthat <-
       sloc_all %>%
-      filter(str_detect(file, file.path(output_dir, "tests/testthat/test[-_]?.*\\.[rR]$"))) %>%
+      filter(str_detect(file, file.path(output_dir, "tests/testthat/test.*\\.[rR]$"))) %>%
       mutate(
-        test_name = str_replace(file, file.path(output_dir, "tests/testthat/test[-_]?(.*)\\.[rR]$"), "\\1")
+        test_name = str_replace(file, file.path(output_dir, "tests/testthat/(test.*)\\.[rR]$"), "\\1")
       )
 
     df <- if (nrow(sloc_testthat) > 0) {
@@ -227,13 +227,14 @@ expand_testthat_tests <- function(pkg_name, test_dir) {
   testthat_dir <- file.path(test_dir, "testthat")
   test_files <- testthat::find_test_scripts(testthat_dir)
   for (file in test_files) {
-    test_name <- basename(file)
-    test_name <- str_replace(test_name, "^test[-_]?(.*)\\.[rR]$", "\\1")
+    test_name <- tools::file_path_sans_ext(basename(file))
+    # testthat filter stripts the 'test-' prefix and .R suffix
+    test_name_filter <- str_replace(test_name, "^test[-_]", "")
     driver_file <- file.path(test_dir, paste0("testthat-drv-", test_name, ".R"))
     code <- str_glue(
       "library({pkg_name})",
       "library(testthat)",
-      "test_check('{pkg_name}', filter='^{test_name}$')",
+      "test_check('{pkg_name}', filter='^{test_name_filter}$')",
       .sep = "\n"
     )
     writeLines(code, driver_file)
@@ -249,11 +250,19 @@ extract_package_vignettes <- function(pkg, pkg_dir, output_dir) {
   }
 
   if (length(vinfo$sources) == 0) {
-    # so far no sources. The following should generate them if there are any
-    # sources in the R code. It might actually run the vignettes as well.
-    # That is a pity, but there is no way to tell it not to (the tangle is
-    # needed to it extracts the R code)
-    tools::checkVignettes(pkg, pkg_dir, tangle = TRUE, lib.loc = lib_path, weave = FALSE, workdir = "src")
+    # It is possible that there are no sources. The following should generate
+    # them if there are any sources in the R code. It might actually run the
+    # vignettes as well. That is a pity, but there is no way to tell it not to
+    # (the tangle is needed to it extracts the R code)
+    #
+    # This can fail (for example, one vignette might override output of another
+    # one, cf. proto package). Yet some files will be extracted.
+    tryCatch({
+      tools::checkVignettes(pkg, pkg_dir, lib.loc = lib_path, tangle =
+                            TRUE, weave = FALSE, workdir = "src")
+    }, error=function(e) {
+      warning(e$message)
+    })
   }
 
   # check if there are some sources
