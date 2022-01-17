@@ -152,14 +152,11 @@ extract_package_code <- function(pkg, pkg_dir = find.package(pkg),
 
 #' @importFrom tools Rd_db Rd2ex
 extract_package_examples <- function(pkg, pkg_dir, output_dir) {
-  db <- tryCatch(
-    {
-      tools::Rd_db(basename(pkg_dir), dir = dirname(pkg_dir))
-    },
-    error = function(e) {
+  db <- tryCatch({
+      tools::Rd_db(basename(pkg_dir), lib.loc = dirname(pkg_dir))
+  }, error = function(e) {
       c()
-    }
-  )
+  })
 
   if (!length(db)) {
     return(character())
