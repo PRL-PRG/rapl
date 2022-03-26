@@ -1,5 +1,8 @@
+#' @importFrom withr local_libpaths
 #' @export
-metadata_functions <- function(package) {
+metadata_functions <- function(package, lib_loc=NULL) {
+  withr::local_libpaths(lib_loc)
+
   ns <- getNamespace(package)
   exports <- getNamespaceExports(package)
   bindings <- ls(env = ns, all.names = TRUE)
